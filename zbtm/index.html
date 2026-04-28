@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DAISEN在庫">
+<meta name="theme-color" content="#f0f8ff">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<title>ダイセン電子工業 在庫管理</title>
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --white:#fff;--off:#f0f8ff;--bg:#e8f4fd;
+  --border:#c8e0f0;--border2:#a8cce4;
+  --text:#111;--text2:#6b6b67;--text3:#b0b0aa;
+  --green:#16a34a;--green-bg:#f0fdf4;
+  --amber:#d97706;--amber-bg:#fffbeb;
+  --red:#dc2626;--red-bg:#fef2f2;
+  --r:12px;--sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--sans);background:linear-gradient(160deg,#f0f8ff 0%,#ddeef8 50%,#f0f8ff 100%);background-attachment:fixed;color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(240,248,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;justify-content:space-between}
+.hdr-brand{}
+.hdr-corp{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:.18em;background:linear-gradient(90deg,#b8dff5,#60aee8,#1e6fc4,#60aee8,#b8dff5);background-size:220% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3.4s linear infinite}
+@keyframes shimmer{0%{background-position:220% center}100%{background-position:-220% center}}
+.hdr-line{width:100%;height:1px;background:linear-gradient(90deg,transparent,#90c8ea,#1e6fc4,#90c8ea,transparent);background-size:220% auto;animation:shimmer 3.4s linear infinite;margin:3px 0 2px}
+.hdr-sub{display:flex;align-items:center;gap:6px}
+.hdr-title{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:.3em;color:#7bbde0;text-transform:uppercase}
+#sync-dot{width:6px;height:6px;border-radius:50%;background:#60aee8;box-shadow:0 0 6px #60aee8;opacity:0;transition:opacity .3s;flex-shrink:0}
+.hdr-actions{display:flex;gap:6px}
+.hdr-btn{height:34px;padding:0 14px;border-radius:34px;background:var(--white);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .15s;white-space:nowrap}
+.hdr-btn:active{background:var(--off)}
+.hdr-btn.primary{background:var(--text);color:var(--white);border-color:var(--text)}
+.hdr-btn.primary:active{opacity:.85}
+
+/* SCAN BAR */
+.scan-bar{padding:10px 18px;background:rgba(240,248,255,.95);border-bottom:1px solid var(--border)}
+.scan-bar-btn{width:100%;height:44px;background:linear-gradient(90deg,#1e6fc4,#3b9ae8);border:none;border-radius:12px;color:#fff;font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 12px rgba(30,111,196,.25);transition:opacity .15s,transform .1s}
+.scan-bar-btn:active{opacity:.85;transform:scale(.98)}
+.scan-bar-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2}
+
+/* TOP PAGE */
+.top-page{padding:20px 18px 120px;position:relative;z-index:1}
+.top-welcome{text-align:center;padding:20px 0 24px}
+.top-welcome-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:.3em;color:#7bbde0;text-transform:uppercase;margin-bottom:8px}
+.top-welcome-sub{font-size:13px;color:var(--text2)}
+.category-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cat-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px 16px;cursor:pointer;text-align:center;transition:border-color .18s,box-shadow .18s,transform .12s;animation:fadeUp .35s var(--ease) both;position:relative;overflow:hidden}
+.cat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
+.cat-card.c0::before{background:linear-gradient(90deg,#16a34a,#4ade80)}
+.cat-card.c1::before{background:linear-gradient(90deg,#2563eb,#60aee8)}
+.cat-card.c2::before{background:linear-gradient(90deg,#7c3aed,#a78bfa)}
+.cat-card.c3::before{background:linear-gradient(90deg,#d97706,#fbbf24)}
+.cat-card.c4::before{background:linear-gradient(90deg,#dc2626,#f87171)}
+.cat-card.c5::before{background:linear-gradient(90deg,#0891b2,#22d3ee)}
+.cat-card:hover{border-color:var(--border2);box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.cat-card:active{transform:scale(.97)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.cat-icon{font-size:32px;margin-bottom:10px;line-height:1}
+.cat-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
+.cat-count{font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
+.cat-alert{display:inline-flex;align-items:center;gap:3px;margin-top:6px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.cat-alert.warn{background:var(--amber-bg);color:var(--amber)}
+.cat-alert.zero{background:var(--red-bg);color:var(--red)}
+
+/* LIST PAGE */
+.list-page{padding:8px 18px 120px;position:relative;z-index:1}
+.row{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:6px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .18s,box-shadow .18s,transform .12s;animation:fadeUp .35s var(--ease) both}
+.row:hover{border-color:var(--border2);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.row:active{transform:scale(.99)}
+.row-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.row.ok .row-dot{background:var(--green)}
+.row.warn .row-dot{background:var(--amber);animation:pulse 2s infinite}
+.row.zero .row-dot{background:var(--red);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.4);opacity:.6}}
+.row-info{flex:1;min-width:0}
+.row-ddk{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px}
+.row-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
+.row-right{text-align:right;flex-shrink:0}
+.row-qty{font-family:var(--mono);font-size:20px;font-weight:500}
+.row-qty.ok{color:var(--green)}.row-qty.warn{color:var(--amber)}.row-qty.zero{color:var(--red)}
+.row-unit{font-size:11px;color:var(--text3);margin-top:2px}
+.chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.chip-ok{background:var(--green-bg);color:var(--green)}
+.chip-warn{background:var(--amber-bg);color:var(--amber)}
+.chip-zero{background:var(--red-bg);color:var(--red)}
+
+/* BANNERS */
+#alert-banners{padding:0 18px;position:relative;z-index:1}
+#alert-banners:empty{display:none}
+.banner{margin-top:8px;background:var(--amber-bg);border:1px solid rgba(217,119,6,.2);border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:8px;animation:fadeUp .3s var(--ease)}
+.banner.critical{background:var(--red-bg);border-color:rgba(220,38,38,.2)}
+.banner-text{font-size:12px;font-weight:500;color:var(--text);flex:1;line-height:1.5}
+
+/* TABBAR */
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(240,248,255,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0)}
+.tab{flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.04em;text-transform:uppercase;transition:color .15s}
+.tab.on{color:var(--text)}
+.tab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.tab-dot{width:4px;height:4px;border-radius:50%;background:var(--text);margin-top:1px;opacity:0;transition:opacity .15s}
+.tab.on .tab-dot{opacity:1}
+
+/* OVERLAY */
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.3);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .22s var(--ease)}
+.overlay.on{opacity:1;pointer-events:all}
+.sheet{width:100%;max-height:92vh;background:linear-gradient(180deg,#f5fbff,#eaf4fc);border-radius:20px 20px 0 0;overflow-y:auto;transform:translateY(100%);transition:transform .3s var(--ease);padding-bottom:env(safe-area-inset-bottom,20px);box-shadow:0 -4px 40px rgba(0,0,0,.08)}
+.overlay.on .sheet{transform:translateY(0)}
+.drag{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
+.m-hdr{padding:14px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(245,251,255,.98);z-index:1}
+.m-title{font-size:16px;font-weight:600}
+.x-btn{width:28px;height:28px;border-radius:50%;background:var(--off);border:none;color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.x-btn:active{background:var(--border)}
+.m-body{padding:20px}
+
+/* QA */
+.qa-ddk{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:4px}
+.qa-name{font-size:22px;font-weight:600;margin-bottom:20px;line-height:1.2}
+.qa-stock{background:var(--off);border-radius:var(--r);padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.qa-stock-lbl{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.qa-stock-val{display:flex;align-items:baseline;gap:6px}
+.qa-num{font-family:var(--mono);font-size:40px;font-weight:500;line-height:1}
+.qa-num.ok{color:var(--green)}.qa-num.warn{color:var(--amber)}.qa-num.zero{color:var(--red)}
+.qa-unit{font-size:14px;color:var(--text2)}
+.io-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.io-btn{padding:16px 12px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--white);color:var(--text2);font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s}
+.io-btn:active{transform:scale(.97)}
+.io-btn .io-ic{font-size:24px}
+.io-btn.sel-in{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.io-btn.sel-out{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.qty-ctrl{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.q-btn{width:46px;height:46px;border-radius:50%;background:var(--off);border:1px solid var(--border);color:var(--text);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--sans);flex-shrink:0}
+.q-btn:active{background:var(--border)}
+.q-num{flex:1;background:var(--off);border:1.5px solid var(--border);border-radius:var(--r);text-align:center;font-family:var(--mono);font-size:30px;font-weight:500;padding:10px;color:var(--text);outline:none;-moz-appearance:textfield}
+.q-num::-webkit-inner-spin-button,.q-num::-webkit-outer-spin-button{-webkit-appearance:none}
+.exec-btn{width:100%;padding:15px;border-radius:var(--r);border:none;font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;transition:transform .1s}
+.exec-btn:active{transform:scale(.98)}
+.exec-in{background:var(--green);color:#fff}
+.exec-out{background:var(--red);color:#fff}
+.exec-dis{background:var(--off);color:var(--text3);pointer-events:none;border:1px solid var(--border)}
+.detail-actions{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.d-btn{flex:1;padding:10px;border-radius:var(--r);background:var(--off);border:1px solid var(--border);color:var(--text2);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer}
+.d-btn:active{background:var(--border)}
+.d-btn.del{color:var(--red);background:var(--red-bg);border-color:rgba(220,38,38,.2)}
+
+/* TOAST */
+.toast{position:fixed;top:74px;left:50%;transform:translateX(-50%) translateY(-10px);z-index:600;background:var(--text);color:var(--white);padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.toast.in-show{background:var(--green)}.toast.out-show{background:var(--red)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* QR */
+.qr-hint{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px;padding:12px 14px;background:var(--off);border-radius:var(--r)}
+.qr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qr-card{background:var(--off);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer}
+.qr-card:active{opacity:.7}
+.qr-n{font-size:12px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qr-ddk{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:10px}
+.qr-img-wrap{display:inline-block;background:#fff;padding:6px;border-radius:8px;border:1px solid var(--border)}
+
+/* FORM */
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.fi{width:100%;background:var(--off);border:1.5px solid var(--border);border-radius:var(--r);padding:11px 13px;color:var(--text);font-size:15px;font-family:var(--sans);outline:none}
+.fi:focus{border-color:var(--border2)}
+.fi::placeholder{color:var(--text3)}
+.submit-btn{width:100%;padding:14px;border-radius:var(--r);border:none;background:var(--text);color:var(--white);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer}
+.submit-btn:active{opacity:.8}
+
+/* CAMERA */
+.cam-wrap{position:relative;overflow:hidden;border-radius:var(--r);background:#000;aspect-ratio:1;max-height:270px;border:1px solid var(--border)}
+#qr-video{width:100%;height:100%;object-fit:cover;display:block}
+.cam-guide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.cam-box{width:170px;height:170px;border:2px solid rgba(255,255,255,.8);border-radius:12px;position:relative;overflow:hidden}
+.cam-line{position:absolute;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);animation:scan 1.8s ease-in-out infinite}
+@keyframes scan{0%,100%{top:0}50%{top:calc(100% - 1.5px)}}
+.cam-st{text-align:center;font-size:13px;color:var(--text2);margin:10px 0 14px;min-height:18px}
+
+/* HISTORY */
+.h-tabs{display:flex;gap:0;margin-bottom:20px;background:var(--off);border-radius:10px;padding:3px}
+.h-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border-radius:8px;color:var(--text2);transition:all .15s}
+.h-tab.on{background:var(--white);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.h-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.h-row:last-child{border:none}
+.h-name{font-size:14px;font-weight:500}
+.h-cat{font-size:10px;color:var(--text3);margin-top:1px}
+.h-time{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px}
+.h-d{font-family:var(--mono);font-size:15px;font-weight:500}
+.h-d.p{color:var(--green)}.h-d.m{color:var(--red)}
+
+/* GRAPH */
+.graph-card{background:var(--off);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.graph-card-title{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px}
+.month-tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px}
+.m-tab{height:30px;padding:0 14px;border-radius:30px;background:var(--off);border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;font-family:var(--sans)}
+.m-tab.on{background:var(--text);color:var(--white);border-color:var(--text)}
+.rank-list{display:flex;flex-direction:column;gap:8px}
+.rank-row{display:flex;align-items:center;gap:10px;animation:fadeUp .3s var(--ease) both}
+.rank-num{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text3);width:20px;flex-shrink:0;text-align:right}
+.rank-num.top{color:var(--text)}
+.rank-label{width:100px;flex-shrink:0}
+.rank-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.rank-ddk{font-family:var(--mono);font-size:9px;color:var(--text3)}
+.rank-track{flex:1;height:26px;background:var(--border);border-radius:4px;overflow:hidden;position:relative}
+.rank-fill{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width .6s cubic-bezier(.4,0,.2,1);width:0;min-width:0}
+.rank-fill.r1{background:linear-gradient(90deg,#1d4ed8,#3b82f6)}
+.rank-fill.r2{background:#60aee8}
+.rank-fill.r3{background:#93c5fd}
+.rank-fill.rn{background:var(--border2)}
+.rank-val{font-family:var(--mono);font-size:11px;font-weight:600;color:#fff;opacity:0;transition:opacity .3s .4s;white-space:nowrap}
+.rank-val.show{opacity:1}
+.rank-crown{font-size:13px;margin-right:2px}
+.graph-empty{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+.graph-loading{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+
+/* SETTINGS */
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.s-row:last-child{border:none}
+.s-label{font-size:14px;font-weight:500}
+.s-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.toggle{width:44px;height:26px;border-radius:13px;background:var(--border2);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s var(--ease);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle.on::after{transform:translateX(18px)}
+.empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px}
+.empty-i{font-size:36px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-corp">DAISEN ELECTRONICS</div>
+    <div class="hdr-line"></div>
+    <div class="hdr-sub">
+      <div class="hdr-title" id="hdr-title">在庫管理システム</div>
+      <div id="sync-dot"></div>
+    </div>
+  </div>
+  <div class="hdr-actions" id="hdr-actions">
+    <button class="hdr-btn primary" onclick="openModal('add-modal')">+ 追加</button>
+  </div>
+</div>
+
+<!-- TOP VIEW -->
+<div id="top-view">
+  <div class="scan-bar">
+    <button class="scan-bar-btn" onclick="startScanFlow()">
+      <svg viewBox="0 0 24 24"><polyline points="23 7 23 1 17 1"/><line x1="16" y1="8" x2="23" y2="1"/><polyline points="1 17 1 23 7 23"/><line x1="8" y1="16" x2="1" y2="23"/></svg>
+      QRコードをスキャン（全分野対応）
+    </button>
+  </div>
+  <div class="top-page">
+    <div class="top-welcome">
+      <div class="top-welcome-title">在庫管理システム</div>
+      <div class="top-welcome-sub">分野を選んで在庫を確認・更新</div>
+    </div>
+    <div class="category-grid" id="cat-grid"></div>
+  </div>
+</div>
+
+<!-- LIST VIEW -->
+<div id="list-view" style="display:none">
+  <div class="scan-bar">
+    <button class="scan-bar-btn" onclick="startScanFlow()">
+      <svg viewBox="0 0 24 24"><polyline points="23 7 23 1 17 1"/><line x1="16" y1="8" x2="23" y2="1"/><polyline points="1 17 1 23 7 23"/><line x1="8" y1="16" x2="1" y2="23"/></svg>
+      QRコードをスキャン
+    </button>
+  </div>
+  <div id="alert-banners"></div>
+  <div class="list-page" id="item-list"></div>
+</div>
+
+<div class="tabbar">
+  <div class="tab on" id="t-home" onclick="goHome()">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    ホーム<div class="tab-dot"></div>
+  </div>
+  <div class="tab" id="t-hist" onclick="openHist()">
+    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    履歴<div class="tab-dot"></div>
+  </div>
+  <div class="tab" id="t-set" onclick="openSet()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    設定<div class="tab-dot"></div>
+  </div>
+</div>
+
+<!-- QUICK ACTION -->
+<div class="overlay" id="qa-modal">
+  <div class="sheet">
+    <div class="drag"></div>
+    <div class="m-hdr"><span class="m-title" id="qa-heading">入出庫</span><div class="x-btn" onclick="closeModal('qa-modal')">✕</div></div>
+    <div class="m-body">
+      <div class="qa-ddk" id="qa-ddk"></div>
+      <div class="qa-name" id="qa-name"></div>
+      <div class="qa-stock">
+        <div>
+          <div class="qa-stock-lbl">現在の在庫</div>
+          <div class="qa-stock-val">
+            <div class="qa-num" id="qa-cur">0</div>
+            <div class="qa-unit" id="qa-unit"></div>
+          </div>
+        </div>
+        <div id="qa-chip"></div>
+      </div>
+      <div class="io-row">
+        <button class="io-btn" id="btn-in" onclick="selIO('in')"><span class="io-ic">↓</span>入庫</button>
+        <button class="io-btn" id="btn-out" onclick="selIO('out')"><span class="io-ic">↑</span>出庫</button>
+      </div>
+      <div class="qty-ctrl">
+        <button class="q-btn" onclick="adj(-1)">−</button>
+        <input class="q-num" type="number" id="io-n" value="1" min="1">
+        <button class="q-btn" onclick="adj(1)">+</button>
+      </div>
+      <button class="exec-btn exec-dis" id="exec-btn" onclick="execIO()">方向を選択してください</button>
+      <div class="detail-actions">
+        <button class="d-btn" onclick="editItem()">編集</button>
+        <button class="d-btn del" onclick="deleteItem()">削除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR LIST -->
+<div class="overlay" id="qr-modal">
+  <div class="sheet">
+    <div class="drag"></div>
+    <div class="m-hdr"><span class="m-title">QRコード一覧</span><div class="x-btn" onclick="closeModal('qr-modal')">✕</div></div>
+    <div class="m-body">
+      <div class="qr-hint">各QRをタップ → 新タブで表示 → 長押し保存 → 印刷して貼り付け。スキャンで入出庫画面が開きます。</div>
+      <div class="qr-grid" id="qr-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT -->
+<div class="overlay" id="add-modal">
+  <div class="sheet">
+    <div class="drag"></div>
+    <div class="m-hdr"><span class="m-title" id="add-title">商品を追加</span><div class="x-btn" onclick="closeModal('add-modal')">✕</div></div>
+    <div class="m-body">
+      <div class="fg"><label class="fl">分野</label>
+        <select class="fi" id="a-cat">
+          <option value="EnOcean">EnOcean</option>
+          <option value="ZBTM送信機">ZBTM送信機</option>
+          <option value="920M送信機">920M送信機</option>
+          <option value="赤外線送信機">赤外線送信機</option>
+          <option value="受信機">受信機</option>
+          <option value="各種モジュール">各種モジュール</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">DDK番号</label><input class="fi" id="a-ddk" placeholder="例：ddk12049"></div>
+      <div class="fg"><label class="fl">商品名</label><input class="fi" id="a-name" placeholder="例：T02"></div>
+      <div class="fg"><label class="fl">現在の数量</label><input class="fi" type="number" id="a-qty" placeholder="0" min="0"></div>
+      <div class="fg"><label class="fl">警告ライン</label><input class="fi" type="number" id="a-min" placeholder="5" min="0"></div>
+      <div class="fg"><label class="fl">単位</label><input class="fi" id="a-unit" placeholder="個・本・袋"></div>
+      <button class="submit-btn" onclick="submitItem()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCAN -->
+<div class="overlay" id="scan-modal">
+  <div class="sheet">
+    <div class="drag"></div>
+    <div class="m-hdr"><span class="m-title">QRスキャン</span><div class="x-btn" onclick="stopScan();closeModal('scan-modal')">✕</div></div>
+    <div class="m-body">
+      <div class="cam-wrap">
+        <video id="qr-video" autoplay playsinline muted></video>
+        <div class="cam-guide"><div class="cam-box"><div class="cam-line"></div></div></div>
+      </div>
+      <div class="cam-st" id="cam-st">カメラを起動しています…</div>
+      <div class="fg"><label class="fl">商品IDを直接入力</label><input class="fi" id="man-id" placeholder="T02" oninput="this.value=this.value.toUpperCase()"></div>
+      <button class="submit-btn" onclick="openByManual()">この商品を開く</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="overlay" id="hist-modal">
+  <div class="sheet">
+    <div class="drag"></div>
+    <div class="m-hdr"><span class="m-title">履歴・グラフ</span><div class="x-btn" onclick="closeModal('hist-modal');document.getElementById('t-hist').classList.remove('on');document.getElementById('t-home').classList.add('on')">✕</div></div>
+    <div class="m-body">
+      <div class="h-tabs">
+        <div class="h-tab on" id="ht-graph" onclick="switchHistTab('graph')">月別グラフ</div>
+        <div class="h-tab" id="ht-log" onclick="switchHistTab('log')">入出庫履歴</div>
+      </div>
+      <div id="graph-pane"></div>
+      <div id="log-pane" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="overlay" id="set-modal">
+  <div class="sheet">
+    <div class="drag"></div>
+    <div class="m-hdr"><span class="m-title">設定</span><div class="x-btn" onclick="closeModal('set-modal');document.getElementById('t-set').classList.remove('on');document.getElementById('t-home').classList.add('on')">✕</div></div>
+    <div class="m-body">
+      <div class="s-row">
+        <div><div class="s-label">在庫低下の通知</div><div class="s-sub">警告ラインを下回ったら通知</div></div>
+        <button class="toggle" id="notif-toggle" onclick="toggleNotif()"></button>
+      </div>
+      <div class="s-row">
+        <div><div class="s-label">通知テスト</div><div class="s-sub">今すぐテスト通知を送る</div></div>
+        <button class="hdr-btn" onclick="sendNotif('テスト','DAISEN在庫管理の通知です')">テスト</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<canvas id="qr-canvas" style="display:none"></canvas>
+
+<script>
+const SB_URL='https://earxbzdgjklewnsrcjsp.supabase.co';
+const SB_KEY='sb_publishable_-0sWkrDunUF7Su1RYn5vTQ_5q1MMJ9k';
+const H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+async function sbGet(t,p=''){try{const r=await fetch(`${SB_URL}/rest/v1/${t}?${p}`,{headers:H});return r.json()}catch{return[]}}
+async function sbUpsert(t,d){try{await fetch(`${SB_URL}/rest/v1/${t}`,{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(d)})}catch{}}
+async function sbInsert(t,d){try{await fetch(`${SB_URL}/rest/v1/${t}`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(d)})}catch{}}
+async function sbDelete(t,id){try{await fetch(`${SB_URL}/rest/v1/${t}?id=eq.${encodeURIComponent(id)}`,{method:'DELETE',headers:H})}catch{}}
+
+const CATS=[
+  {id:'EnOcean',       label:'EnOcean',     icon:'🌿',color:'c0'},
+  {id:'ZBTM送信機',    label:'ZBTM送信機',  icon:'📡',color:'c1'},
+  {id:'920M送信機',    label:'920M送信機',  icon:'📶',color:'c2'},
+  {id:'赤外線送信機',  label:'赤外線送信機',icon:'💫',color:'c3'},
+  {id:'受信機',        label:'受信機',      icon:'📻',color:'c4'},
+  {id:'各種モジュール',label:'各種モジュール',icon:'🔧',color:'c5'},
+];
+
+const DEFAULTS=[
+  {id:'STM550J', ddk:'',name:'STM550J マルチセンサー',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'STM550B', ddk:'',name:'STM550B マルチセンサー(BT)',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'EMDCB',   ddk:'',name:'EMDCB 人感&照度(BT)',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'EMDCJ',   ddk:'',name:'EMDCJ 人感&照度センサー',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'ETB-OCS', ddk:'',name:'ETB-OCS 無線あけしめ',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'PTM215J', ddk:'',name:'PTM215J 無線モジュール',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'CTV3',    ddk:'',name:'CTV3 無線電流センサー',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'CPD-JWH', ddk:'',name:'CPD-J(WH) 在席検知',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'CPI-J',   ddk:'',name:'CPI-J 在室検知',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'CPI-JWH', ddk:'',name:'CPI-J(WH) 在室検知',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'CSW-1J',  ddk:'',name:'CSW-1-J スイッチ(長方形S)',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'CSW-2J',  ddk:'',name:'CSW-2-J スイッチ(長方形D)',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'CSW-S1J', ddk:'',name:'CSW-S1-J スイッチ(正方形S)',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'CSW-S2J', ddk:'',name:'CSW-S2-J スイッチ(正方形D)',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'ETB-BAR', ddk:'',name:'ETB-BAR 大気圧センサー',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'ETB-TMP', ddk:'',name:'ETB-TMP 温度センサー',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'ETB-RHT', ddk:'',name:'ETB-RHT 温湿度センサー',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'EMCSJ',   ddk:'',name:'EMCSJ マグネットセンサー',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'USB400J', ddk:'',name:'USB400J ドングル',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'WPR001',  ddk:'',name:'WPR001 無線リレー 100V',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'PTM216B', ddk:'',name:'PTM216B',category:'EnOcean',qty:0,min:3,unit:'個'},
+  {id:'T02',   ddk:'ddk12049',name:'T02',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'T04',   ddk:'ddk12066',name:'T04',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'TC04T', ddk:'ddk12067',name:'TC04タクト',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'TC04I', ddk:'ddk17050',name:'TC04タクトITTS',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'TC04G', ddk:'ddk12068',name:'TC04ゴム',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'T08',   ddk:'ddk12069',name:'T08',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'TC18',  ddk:'ddk13034',name:'TC18',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'TS27',  ddk:'ddk12071',name:'TS27',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'TS32',  ddk:'ddk19032',name:'TS32',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'T48',   ddk:'ddk12073',name:'T48',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'T70',   ddk:'ddk12027',name:'T70',category:'ZBTM送信機',qty:0,min:5,unit:'個'},
+  {id:'T04-TY', ddk:'ddk21032',name:'T04-TY',category:'920M送信機',qty:0,min:5,unit:'個'},
+  {id:'TC04-TY',ddk:'ddk21037',name:'TC04-TY',category:'920M送信機',qty:0,min:5,unit:'個'},
+  {id:'T08-TY', ddk:'ddk21033',name:'T08-TY',category:'920M送信機',qty:0,min:5,unit:'個'},
+  {id:'TS27-TY',ddk:'ddk21034',name:'TS27-TY',category:'920M送信機',qty:0,min:5,unit:'個'},
+  {id:'TS32-TY',ddk:'ddk21035',name:'TS32-TY',category:'920M送信機',qty:0,min:5,unit:'個'},
+  {id:'T48-TY', ddk:'ddk21036',name:'T48-TY',category:'920M送信機',qty:0,min:5,unit:'個'},
+  {id:'T02-STD', ddk:'ddk0624', name:'T02-標準',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'T02-PIC', ddk:'ddk0253', name:'T02-PIC',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'T04-STD', ddk:'ddk14088',name:'T04-標準',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'T04-PIC', ddk:'ddk19018',name:'T04-PIC',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'TC04-PIC',ddk:'ddk12083',name:'TC04-PIC',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'T08-STD', ddk:'ddk0642', name:'T08-標準',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'T08-P16', ddk:'ddk14005',name:'T08-PIC 16F872',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'T08-P18', ddk:'ddk13050',name:'T08-PIC 18F232',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'TC18-PIC',ddk:'ddk12023',name:'TC18-PIC',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'TS27-STD',ddk:'ddk18053',name:'TS27-標準',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'TS27-PIC',ddk:'ddk18052',name:'TS27-PIC',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'TS32-STD',ddk:'ddk18051',name:'TS32-標準',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'TS32-PC2',ddk:'ddk17022',name:'TS32-PIC',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'TS32-PC3',ddk:'ddk19005',name:'TS32-PIC(別)',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'T48-PIC', ddk:'ddk13047',name:'T48-PIC',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'T70-PIC', ddk:'ddk0870', name:'T70-PIC',category:'赤外線送信機',qty:0,min:5,unit:'個'},
+  {id:'R02-IR',     ddk:'ddk13060',name:'R02/04-IR',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R16-IR',     ddk:'ddk15045',name:'R16-IR',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R32-IR',     ddk:'ddk14012',name:'R32-IR',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R04-ZB',     ddk:'ddk12058',name:'R04-ZB',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R16-ZB',     ddk:'ddk12064',name:'R16-ZB',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R04-920ZBC', ddk:'ddk17052',name:'R04-920/ZB-C',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R16-920ZBC', ddk:'ddk16049',name:'R16-920/ZB-C',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R04-IRC',    ddk:'ddk20044',name:'R04-IR-C',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R-UNIT1',    ddk:'',        name:'R-UNIT1',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R-UNIT2',    ddk:'ddk13061',name:'R-UNIT2',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R-UNIT-ZB',  ddk:'ddk13013',name:'R-UNIT-ZBTM',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R-UNIT-920', ddk:'ddk16050',name:'R-UNIT-920/ZB',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R-920ZBE1',  ddk:'ddk17006',name:'R-920/ZB-Ether',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R-920ZBE2',  ddk:'ddk18060',name:'R-920/ZB-Ether(別)',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'R-920ZBE3',  ddk:'ddk21010',name:'R-920/ZB-Ether(3)',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'DDKIT1201',  ddk:'ddk12035',name:'ddkit1201',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'USB920MIC',  ddk:'ddk15019',name:'USB-920M MIC',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'USB920FTDI', ddk:'ddk16071',name:'USB-920M FTDI',category:'受信機',qty:0,min:3,unit:'個'},
+  {id:'H001',       ddk:'',name:'H001-000013-005',category:'各種モジュール',qty:0,min:3,unit:'個'},
+  {id:'NEC-920ATY', ddk:'',name:'NEC-920ATY92SS-E2730',category:'各種モジュール',qty:0,min:3,unit:'個'},
+  {id:'NEC-920CZB', ddk:'',name:'NEC-920CZB24TM-E2036',category:'各種モジュール',qty:0,min:3,unit:'個'},
+  {id:'NEC-ZBTM',   ddk:'',name:'NEC-ZBTMPTM-210J',category:'各種モジュール',qty:0,min:3,unit:'個'},
+  {id:'PTM-215J',   ddk:'',name:'EnOceanスイッチモジュールPTM-215J',category:'各種モジュール',qty:0,min:3,unit:'個'},
+  {id:'MULTI-SNS',  ddk:'',name:'マルチセンサー',category:'各種モジュール',qty:0,min:3,unit:'個'},
+];
+
+let items=[], hist=[], notifEnabled=localStorage.getItem('dn_notif')==='true', currentCat=null;
+
+async function init(){
+  showSync(true);
+  try{
+    const [inv,hst]=await Promise.all([
+      sbGet('inventory','order=category.asc,name.asc'),
+      sbGet('history','order=created_at.desc&limit=200')
+    ]);
+    if(Array.isArray(inv)&&inv.length>0){
+      items=inv;
+    }else{
+      items=JSON.parse(JSON.stringify(DEFAULTS));
+      await sbUpsert('inventory',items);
+    }
+    if(Array.isArray(hst)) hist=hst.map(h=>({...h,time:new Date(h.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}));
+  }catch{
+    items=JSON.parse(JSON.stringify(DEFAULTS));
+  }
+  showSync(false);
+  renderCats();
+  checkHash();
+}
+
+function showSync(on){const e=document.getElementById('sync-dot');if(e)e.style.opacity=on?'1':'0'}
+function st(i){return i.qty===0?'zero':i.qty<=i.min?'warn':'ok'}
+function mkChip(s){return s==='ok'?'<span class="chip chip-ok">正常</span>':s==='warn'?'<span class="chip chip-warn">残り少</span>':'<span class="chip chip-zero">在庫切れ</span>'}
+function now(){return new Date().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}
+
+function renderCats(){
+  const el=document.getElementById('cat-grid');
+  el.innerHTML=CATS.map((c,i)=>{
+    const ci=items.filter(x=>x.category===c.id);
+    const z=ci.filter(x=>st(x)==='zero').length;
+    const w=ci.filter(x=>st(x)==='warn').length;
+    let al='';
+    if(z>0)al+=`<div class="cat-alert zero">⚠ 在庫切れ ${z}</div>`;
+    else if(w>0)al+=`<div class="cat-alert warn">残り少 ${w}</div>`;
+    return `<div class="cat-card ${c.color}" style="animation-delay:${i*.06}s" onclick="openCat('${c.id}')">
+      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-name">${c.label}</div>
+      <div class="cat-count">${ci.length} アイテム</div>
+      ${al}
+    </div>`;
+  }).join('');
+}
+
+function openCat(catId){
+  currentCat=catId;
+  const c=CATS.find(x=>x.id===catId);
+  document.getElementById('hdr-title').textContent=c?c.label:'';
+  document.getElementById('hdr-actions').innerHTML=
+    `<button class="hdr-btn" onclick="openQRList()">QR一覧</button>
+     <button class="hdr-btn primary" onclick="openModal('add-modal')">+ 追加</button>`;
+  document.getElementById('top-view').style.display='none';
+  document.getElementById('list-view').style.display='';
+  document.getElementById('t-home').classList.remove('on');
+  renderList();
+}
+
+function renderList(){
+  if(!currentCat)return;
+  const ci=items.filter(i=>i.category===currentCat);
+  const el=document.getElementById('item-list');
+  if(!ci.length){el.innerHTML='<div class="empty"><div class="empty-i">📦</div>商品がありません</div>';renderBanners();return}
+  el.innerHTML=ci.map((item,idx)=>{
+    const s=st(item);
+    return `<div class="row ${s}" style="animation-delay:${idx*.03}s" onclick="openQA('${item.id}')">
+      <div class="row-dot"></div>
+      <div class="row-info">
+        <div class="row-ddk">${item.ddk||''}</div>
+        <div class="row-name">${item.name}</div>
+        <div>${mkChip(s)}</div>
+      </div>
+      <div class="row-right">
+        <div class="row-qty ${s}">${item.qty}</div>
+        <div class="row-unit">${item.unit}</div>
+      </div>
+    </div>`;
+  }).join('');
+  renderBanners();
+}
+
+function renderBanners(){
+  if(!currentCat)return;
+  const ci=items.filter(i=>i.category===currentCat);
+  const z=ci.filter(i=>st(i)==='zero'), w=ci.filter(i=>st(i)==='warn');
+  let h='';
+  if(z.length)h+=`<div class="banner critical"><span>🚨</span><span class="banner-text">在庫切れ：${z.map(i=>i.name).join('・')}</span></div>`;
+  if(w.length)h+=`<div class="banner"><span>⚠️</span><span class="banner-text">在庫少：${w.map(i=>i.name+' ('+i.qty+i.unit+')').join('・')}</span></div>`;
+  document.getElementById('alert-banners').innerHTML=h;
+}
+
+function goHome(){
+  currentCat=null;
+  document.getElementById('top-view').style.display='';
+  document.getElementById('list-view').style.display='none';
+  document.getElementById('hdr-title').textContent='在庫管理システム';
+  document.getElementById('hdr-actions').innerHTML='<button class="hdr-btn primary" onclick="openModal(\'add-modal\')">+ 追加</button>';
+  ['home','hist','set'].forEach(k=>document.getElementById('t-'+k).classList.toggle('on',k==='home'));
+  renderCats();
+}
+
+let qaId=null,ioDir=null;
+function openQA(id){
+  const item=items.find(i=>i.id===id);if(!item)return;
+  qaId=id;ioDir=null;
+  document.getElementById('qa-heading').textContent=item.name;
+  document.getElementById('qa-name').textContent=item.name;
+  document.getElementById('qa-ddk').textContent=(item.ddk?item.ddk+' · ':'')+item.category;
+  const cv=document.getElementById('qa-cur');cv.textContent=item.qty;cv.className='qa-num '+st(item);
+  document.getElementById('qa-unit').textContent=item.unit;
+  document.getElementById('qa-chip').innerHTML=mkChip(st(item));
+  document.getElementById('io-n').value=1;
+  document.getElementById('btn-in').className='io-btn';
+  document.getElementById('btn-out').className='io-btn';
+  const eb=document.getElementById('exec-btn');eb.className='exec-btn exec-dis';eb.textContent='方向を選択してください';
+  openModal('qa-modal');
+}
+function selIO(dir){
+  ioDir=dir;
+  document.getElementById('btn-in').className='io-btn'+(dir==='in'?' sel-in':'');
+  document.getElementById('btn-out').className='io-btn'+(dir==='out'?' sel-out':'');
+  const eb=document.getElementById('exec-btn');
+  eb.className='exec-btn '+(dir==='in'?'exec-in':'exec-out');
+  eb.textContent=dir==='in'?'入庫する':'出庫する';
+}
+function adj(d){const e=document.getElementById('io-n');e.value=Math.max(1,parseInt(e.value||1)+d)}
+function execIO(){
+  if(!ioDir||!qaId)return;
+  const item=items.find(i=>i.id===qaId);if(!item)return;
+  const n=Math.max(1,parseInt(document.getElementById('io-n').value)||1);
+  if(ioDir==='out'&&n>item.qty){showToast('在庫数を超えて出庫できません');return}
+  const delta=ioDir==='in'?n:-n;
+  item.qty+=delta;
+  sbUpsert('inventory',item);
+  sbInsert('history',{item_id:item.id,name:item.name,ddk:item.ddk||'',category:item.category,delta,unit:item.unit});
+  hist.unshift({...item,delta,time:now()});
+  renderList();renderCats();
+  closeModal('qa-modal');
+  showToast((ioDir==='in'?'入庫':'出庫')+' '+n+item.unit+'  残り'+item.qty+item.unit,ioDir);
+  checkAlerts(item);
+}
+function deleteItem(){
+  const item=items.find(i=>i.id===qaId);if(!item)return;
+  if(!confirm('「'+item.name+'」を削除しますか？'))return;
+  items=items.filter(i=>i.id!==qaId);
+  sbDelete('inventory',qaId);
+  renderList();renderCats();closeModal('qa-modal');
+}
+let editMode=false,editId=null;
+function editItem(){
+  const item=items.find(i=>i.id===qaId);if(!item)return;
+  editMode=true;editId=qaId;
+  document.getElementById('add-title').textContent='商品を編集';
+  document.getElementById('a-cat').value=item.category;
+  document.getElementById('a-ddk').value=item.ddk||'';
+  document.getElementById('a-name').value=item.name;
+  document.getElementById('a-qty').value=item.qty;
+  document.getElementById('a-min').value=item.min;
+  document.getElementById('a-unit').value=item.unit;
+  closeModal('qa-modal');openModal('add-modal');
+}
+function submitItem(){
+  const name=document.getElementById('a-name').value.trim();
+  if(!name){showToast('商品名を入力してください');return}
+  const cat=document.getElementById('a-cat').value;
+  const ddk=document.getElementById('a-ddk').value.trim();
+  const qty=parseInt(document.getElementById('a-qty').value)||0;
+  const min=parseInt(document.getElementById('a-min').value)||5;
+  const unit=document.getElementById('a-unit').value.trim()||'個';
+  let item;
+  if(editMode&&editId){
+    item=items.find(i=>i.id===editId);
+    if(item)Object.assign(item,{category:cat,ddk,name,qty,min,unit});
+    editMode=false;editId=null;
+    document.getElementById('add-title').textContent='商品を追加';
+  }else{
+    const newId=name.replace(/[\s\/]/g,'-').toUpperCase()+'-'+Date.now().toString(36).slice(-4);
+    item={id:newId,ddk,name,category:cat,qty,min,unit};
+    items.push(item);
+  }
+  sbUpsert('inventory',item);
+  if(currentCat===cat)renderList();
+  renderCats();
+  ['a-ddk','a-name','a-qty','a-min','a-unit'].forEach(k=>document.getElementById(k).value='');
+  closeModal('add-modal');
+}
+
+let notTimer=null;
+function updateNotifUI(){const t=document.getElementById('notif-toggle');if(t)t.classList.toggle('on',notifEnabled)}
+async function toggleNotif(){
+  if(!notifEnabled){
+    if(!('Notification' in window)){showToast('この端末は通知非対応です');return}
+    const p=await Notification.requestPermission();
+    if(p==='granted'){notifEnabled=true;localStorage.setItem('dn_notif','true');showToast('通知をオンにしました')}
+    else{showToast('通知が許可されませんでした');return}
+  }else{notifEnabled=false;localStorage.setItem('dn_notif','false');showToast('通知をオフにしました')}
+  updateNotifUI();
+}
+function sendNotif(title,body){if(!notifEnabled||!('Notification' in window))return;if(Notification.permission==='granted')new Notification(title,{body})}
+function checkAlerts(item){
+  const s=st(item);
+  if(s==='zero')sendNotif('🚨 在庫切れ',item.name+' の在庫がなくなりました');
+  else if(s==='warn')sendNotif('⚠️ 在庫低下',item.name+' が残り '+item.qty+item.unit+' になりました');
+}
+
+let toastT=null;
+function showToast(msg,dir){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast'+(dir==='in'?' in-show':dir==='out'?' out-show':'')+' show';
+  if(toastT)clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+function openQRList(){
+  const base=location.href.split('#')[0];
+  const list=currentCat?items.filter(i=>i.category===currentCat):items;
+  document.getElementById('qr-grid').innerHTML=list.map(item=>{
+    const url=base+'#'+item.id;
+    const src='https://api.qrserver.com/v1/create-qr-code/?size=130x130&data='+encodeURIComponent(url);
+    return '<div class="qr-card" onclick="openQRDetail(\''+item.id+'\')"><div class="qr-n">'+item.name+'</div><div class="qr-ddk">'+(item.ddk||item.id)+'</div><div class="qr-img-wrap"><img src="'+src+'" width="110" height="110" loading="lazy"></div></div>';
+  }).join('');
+  openModal('qr-modal');
+}
+function openQRDetail(id){
+  const item=items.find(i=>i.id===id);if(!item)return;
+  const url=location.href.split('#')[0]+'#'+id;
+  const src='https://api.qrserver.com/v1/create-qr-code/?size=260x260&data='+encodeURIComponent(url);
+  const w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+item.name+'</title><style>@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap");*{box-sizing:border-box;margin:0;padding:0}body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f0f8ff;font-family:-apple-system,sans-serif;padding:24px}.card{background:#fff;border:1px solid #c8e0f0;border-radius:16px;padding:24px 28px;text-align:center;box-shadow:0 4px 24px rgba(30,111,196,.1);max-width:280px;width:100%}.corp{font-family:"Orbitron",sans-serif;font-size:9px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;background:linear-gradient(90deg,#b8dff5,#1e6fc4,#b8dff5);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:sh 3s linear infinite;margin-bottom:10px}@keyframes sh{0%{background-position:200%}100%{background-position:-200%}}.line{height:1px;background:linear-gradient(90deg,transparent,#90c8ea,#1e6fc4,#90c8ea,transparent);margin-bottom:14px}.qr{display:inline-block;background:#fff;padding:8px;border-radius:10px;border:1.5px solid #c8e0f0;margin-bottom:14px}img{width:200px;height:200px;display:block}.cat{font-size:10px;color:#7bbde0;letter-spacing:.1em;margin-bottom:4px}.name{font-size:20px;font-weight:700;color:#111;margin-bottom:4px}.ddk{font-family:monospace;font-size:11px;color:#90aec4;margin-bottom:12px}.hint{font-size:10px;color:#b0c8d8}</style></head><body><div class="card"><div class="corp">DAISEN ELECTRONICS</div><div class="line"></div><div class="qr"><img src="'+src+'"></div><div class="cat">'+item.category+'</div><div class="name">'+item.name+'</div><div class="ddk">'+(item.ddk||item.id)+'</div><div class="hint">長押しで保存 · 印刷して商品に貼り付け</div></div></body></html>');
+}
+
+let vStream=null,scanT=null;
+function startScanFlow(){openModal('scan-modal');startScan()}
+async function startScan(){
+  document.getElementById('cam-st').textContent='カメラを起動しています…';
+  try{
+    vStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}});
+    const v=document.getElementById('qr-video');v.srcObject=vStream;await v.play();
+    document.getElementById('cam-st').textContent='QRコードをかざしてください（全分野対応）';
+    const c=document.getElementById('qr-canvas');
+    scanT=setInterval(()=>{
+      if(v.readyState!==v.HAVE_ENOUGH_DATA)return;
+      c.width=v.videoWidth;c.height=v.videoHeight;
+      const ctx=c.getContext('2d');ctx.drawImage(v,0,0);
+      if(!window.jsQR)return;
+      const qr=jsQR(ctx.getImageData(0,0,c.width,c.height).data,c.width,c.height);
+      if(qr){stopScan();closeModal('scan-modal');handleCode(qr.data)}
+    },300);
+  }catch{document.getElementById('cam-st').textContent='カメラを使用できません。IDを直接入力してください。'}
+}
+function stopScan(){if(scanT){clearInterval(scanT);scanT=null}if(vStream){vStream.getTracks().forEach(t=>t.stop());vStream=null}}
+function handleCode(code){
+  const id=code.includes('#')?code.split('#').pop():code.trim().toUpperCase();
+  const item=items.find(i=>i.id===id);
+  if(item){if(item.category!==currentCat)openCat(item.category);setTimeout(()=>openQA(item.id),200)}
+  else showToast('商品「'+id+'」が見つかりません');
+}
+function openByManual(){
+  const v=document.getElementById('man-id').value.trim();if(!v)return;
+  stopScan();closeModal('scan-modal');handleCode(v.toUpperCase());
+  document.getElementById('man-id').value='';
+}
+
+function switchHistTab(t){
+  document.getElementById('ht-graph').classList.toggle('on',t==='graph');
+  document.getElementById('ht-log').classList.toggle('on',t==='log');
+  document.getElementById('graph-pane').style.display=t==='graph'?'':'none';
+  document.getElementById('log-pane').style.display=t==='log'?'':'none';
+  if(t==='graph') renderGraph();
+  if(t==='log') renderLog();
+}
+
+let graphMonthIdx=2; // 0=2ヶ月前,1=先月,2=今月
+
+function getMonths(){
+  const now=new Date();
+  const months=[];
+  for(let i=2;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    months.push({
+      key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,
+      label:`${d.getFullYear()}年${d.getMonth()+1}月`,
+      short:`${d.getMonth()+1}月`,
+      year:d.getFullYear(),
+      month:d.getMonth()+1
+    });
+  }
+  return months;
+}
+
+async function renderGraph(){
+  const el=document.getElementById('graph-pane');
+  el.innerHTML='<div class="graph-loading">読み込み中…</div>';
+  try{
+    const months=getMonths();
+    // 3ヶ月分のデータを一括取得
+    const from=months[0].key+'-01';
+    const rows=await sbGet('history',`created_at=gte.${from}T00:00:00&delta=lt.0&order=created_at.asc&limit=5000`);
+    if(!Array.isArray(rows)){el.innerHTML='<div class="graph-loading">データなし</div>';return}
+
+    // 月ごと・商品ごとに集計
+    const monthData=months.map(m=>{
+      const map={};
+      rows.filter(r=>{
+        const d=new Date(r.created_at);
+        return d.getFullYear()===m.year&&d.getMonth()+1===m.month;
+      }).forEach(r=>{
+        map[r.item_id]=(map[r.item_id]||0)+Math.abs(r.delta);
+      });
+      return map;
+    });
+
+    // 月タブHTML
+    const tabsHtml=`<div class="month-tabs">${months.map((m,i)=>
+      `<button class="m-tab${i===graphMonthIdx?' on':''}" onclick="selectGraphMonth(${i})">${m.short}</button>`
+    ).join('')}</div>`;
+
+    // 選択月のランキング
+    function buildRanking(monthIdx){
+      const map=monthData[monthIdx];
+      const ranked=items
+        .map(item=>({...item,sales:map[item.id]||0}))
+        .filter(i=>i.sales>0)
+        .sort((a,b)=>b.sales-a.sales);
+      if(!ranked.length) return '<div class="graph-empty">この月の出庫データがありません</div>';
+      const maxVal=ranked[0].sales;
+      return `<div class="rank-list">${ranked.map((item,idx)=>{
+        const pct=Math.round((item.sales/maxVal)*100);
+        const fc=idx===0?'r1':idx===1?'r2':idx===2?'r3':'rn';
+        const isTop=idx===0;
+        return `<div class="rank-row" style="animation-delay:${idx*.03}s">
+          <div class="rank-num${isTop?' top':''}">${isTop?'👑':idx+1}</div>
+          <div class="rank-label">
+            <div class="rank-name">${item.name}</div>
+            <div class="rank-ddk">${item.ddk||item.category}</div>
+          </div>
+          <div class="rank-track">
+            <div class="rank-fill ${fc}" data-pct="${pct}">
+              <span class="rank-val">${item.sales}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}</div>`;
+    }
+
+    el.innerHTML=`
+      <div class="graph-card">
+        <div class="graph-card-title">商品別 出庫数ランキング</div>
+        ${tabsHtml}
+        <div id="rank-body">${buildRanking(graphMonthIdx)}</div>
+      </div>`;
+
+    // バーアニメーション
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      el.querySelectorAll('.rank-fill').forEach(e=>{
+        e.style.width=e.dataset.pct+'%';
+        const v=e.querySelector('.rank-val');
+        if(v) setTimeout(()=>v.classList.add('show'),400);
+      });
+    }));
+
+    // 月タブ切り替え関数（グローバル）
+    window._monthData=monthData;
+    window._buildRanking=buildRanking;
+
+  }catch(e){
+    el.innerHTML='<div class="graph-loading">データを読み込めませんでした</div>';
+  }
+}
+
+function selectGraphMonth(idx){
+  graphMonthIdx=idx;
+  // タブ更新
+  document.querySelectorAll('.m-tab').forEach((t,i)=>t.classList.toggle('on',i===idx));
+  // ランキング更新
+  const body=document.getElementById('rank-body');
+  if(body&&window._buildRanking){
+    body.innerHTML=window._buildRanking(idx);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      document.querySelectorAll('.rank-fill').forEach(e=>{
+        e.style.width=e.dataset.pct+'%';
+        const v=e.querySelector('.rank-val');
+        if(v) setTimeout(()=>v.classList.add('show'),400);
+      });
+    }));
+  }
+}
+
+function renderLog(){
+  const el=document.getElementById('log-pane');
+  if(!hist.length){el.innerHTML='<div class="empty"><div class="empty-i">📋</div>まだ履歴がありません</div>';return}
+  el.innerHTML=hist.slice(0,60).map(h=>'<div class="h-row"><div><div class="h-name">'+h.name+'</div><div class="h-cat">'+(h.category||'')+'</div><div class="h-time">'+(h.time||'')+'</div></div><div class="h-d '+(h.delta>0?'p':'m')+'">'+(h.delta>0?'+':'')+h.delta+' '+h.unit+'</div></div>').join('');
+}
+
+function openHist(){
+  ['home','hist','set'].forEach(k=>document.getElementById('t-'+k).classList.toggle('on',k==='hist'));
+  // reset tabs
+  document.getElementById('ht-graph').classList.add('on');
+  document.getElementById('ht-log').classList.remove('on');
+  document.getElementById('graph-pane').style.display='';
+  document.getElementById('log-pane').style.display='none';
+  openModal('hist-modal');
+  renderGraph();
+}
+function openSet(){
+  ['home','hist','set'].forEach(k=>document.getElementById('t-'+k).classList.toggle('on',k==='set'));
+  updateNotifUI();openModal('set-modal');
+}
+
+function openModal(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden'}
+function closeModal(id){
+  document.getElementById(id).classList.remove('on');document.body.style.overflow='';
+  if(id==='scan-modal')stopScan();
+}
+document.querySelectorAll('.overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el){if(el.id==='scan-modal')stopScan();closeModal(el.id)}});
+});
+
+function checkHash(){
+  const h=location.hash.replace('#','');if(!h)return;
+  const item=items.find(i=>i.id===h);
+  if(item){openCat(item.category);setTimeout(()=>openQA(item.id),350)}
+}
+
+updateNotifUI();
+init();
+window.addEventListener('hashchange',checkHash);
+</script>
+</body>
+</html>

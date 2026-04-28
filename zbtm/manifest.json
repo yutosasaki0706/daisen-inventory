@@ -1,0 +1,17 @@
+{
+  "name": "在庫管理",
+  "short_name": "在庫管理",
+  "description": "QRコード対応の在庫管理アプリ",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
