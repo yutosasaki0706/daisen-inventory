@@ -520,9 +520,11 @@ const DEFAULTS=[
 ];
 
 let items=[], hist=[], notifEnabled=localStorage.getItem('dn_notif')==='true', currentCat=null;
+let loadError=null;
 
 async function init(){
   showSync(true);
+  loadError=null;
   try{
     const [inv,hst]=await Promise.all([
       sbGet('inventory','order=category.asc,name.asc'),
@@ -531,18 +533,31 @@ async function init(){
     if(Array.isArray(inv)&&inv.length>0){
       items=inv;
     }else{
-      items=JSON.parse(JSON.stringify(DEFAULTS));
-      await sbUpsert('inventory',items);
+      loadError='サーバーから在庫データが取得できませんでした（0件）。データは変更していません。リロードしてもう一度お試しください。';
     }
     if(Array.isArray(hst)) hist=hst.map(h=>({...h,time:new Date(h.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}));
-  }catch{
-    items=JSON.parse(JSON.stringify(DEFAULTS));
+  }catch(e){
+    loadError='サーバーへの接続に失敗しました。インターネット接続をご確認のうえ、リロードしてください。（データは変更していません）';
   }
   showSync(false);
-  renderCats();
+  if(loadError){
+    showLoadError(loadError);
+  }
+  
+}  renderCats();
   checkHash();
 }
 
+function showLoadError(msg){
+  const toast=document.getElementById('toast');
+  if(toast){
+    toast.textContent=msg;
+    toast.classList.add('show');
+    setTimeout(()=>{toast.classList.remove('show')}, 6000);
+  }else{
+    alert(msg);
+  }
+}
 function showSync(on){const e=document.getElementById('sync-dot');if(e)e.style.opacity=on?'1':'0'}
 function st(i){return i.qty===0?'zero':i.qty<=i.min?'warn':'ok'}
 function mkChip(s){return s==='ok'?'<span class="chip chip-ok">正常</span>':s==='warn'?'<span class="chip chip-warn">残り少</span>':'<span class="chip chip-zero">在庫切れ</span>'}
