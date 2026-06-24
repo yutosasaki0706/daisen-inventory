@@ -543,12 +543,11 @@ async function init(){
   if(loadError){
     showLoadError(loadError);
   }
-  
-}  renderCats();
+  renderCats();
   checkHash();
 }
 
-function showLoadError(msg){
+function showLoadError(msg){ 
   const toast=document.getElementById('toast');
   if(toast){
     toast.textContent=msg;
