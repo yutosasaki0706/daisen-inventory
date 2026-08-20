@@ -54,21 +54,16 @@ body{font-family:var(--sans);background:linear-gradient(160deg,#f0f8ff 0%,#ddeef
 .top-welcome-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:.3em;color:#7bbde0;text-transform:uppercase;margin-bottom:8px}
 .top-welcome-sub{font-size:13px;color:var(--text2)}
 .category-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.cat-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px 16px;cursor:pointer;text-align:center;transition:border-color .18s,box-shadow .18s,transform .12s;animation:fadeUp .35s var(--ease) both;position:relative;overflow:hidden}
-.cat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
-.cat-card.c0::before{background:linear-gradient(90deg,#16a34a,#4ade80)}
-.cat-card.c1::before{background:linear-gradient(90deg,#2563eb,#60aee8)}
-.cat-card.c2::before{background:linear-gradient(90deg,#7c3aed,#a78bfa)}
-.cat-card.c3::before{background:linear-gradient(90deg,#d97706,#fbbf24)}
-.cat-card.c4::before{background:linear-gradient(90deg,#dc2626,#f87171)}
-.cat-card.c5::before{background:linear-gradient(90deg,#0891b2,#22d3ee)}
-.cat-card:hover{border-color:var(--border2);box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.cat-card{min-height:128px;background:linear-gradient(145deg,#fff 0%,#f7fbfe 100%);border:1px solid rgba(168,204,228,.78);border-radius:14px;padding:16px;cursor:pointer;text-align:left;display:flex;flex-direction:column;transition:border-color .18s,box-shadow .18s,transform .12s;animation:fadeUp .35s var(--ease) both;position:relative;overflow:hidden}
+.cat-card::before{content:'';position:absolute;top:0;bottom:0;left:0;width:2px;background:linear-gradient(180deg,#b8dff5,#1e6fc4,#b8dff5);opacity:.9}
+.cat-card:hover{border-color:#87bddf;box-shadow:0 8px 24px rgba(30,111,196,.10)}
 .cat-card:active{transform:scale(.97)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.cat-icon{font-size:32px;margin-bottom:10px;line-height:1}
-.cat-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
-.cat-count{font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
-.cat-alert{display:inline-flex;align-items:center;gap:3px;margin-top:6px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.cat-index{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:.18em;color:#8bbbd8;margin-bottom:13px}
+.cat-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.35;letter-spacing:.01em;word-break:break-word}
+.cat-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:auto;padding-top:14px}
+.cat-count{font-size:9px;color:#90aec4;font-family:var(--mono);letter-spacing:.04em;white-space:nowrap}
+.cat-alert{display:inline-flex;align-items:center;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:600;white-space:nowrap}
 .cat-alert.warn{background:var(--amber-bg);color:var(--amber)}
 .cat-alert.zero{background:var(--red-bg);color:var(--red)}
 
@@ -172,6 +167,19 @@ body{font-family:var(--sans);background:linear-gradient(160deg,#f0f8ff 0%,#ddeef
 .fi::placeholder{color:var(--text3)}
 .submit-btn{width:100%;padding:14px;border-radius:var(--r);border:none;background:var(--text);color:var(--white);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer}
 .submit-btn:active{opacity:.8}
+.field-row{display:flex;align-items:stretch;gap:8px}
+.field-row .fi{flex:1;min-width:0}
+.mini-btn{flex-shrink:0;padding:0 14px;border-radius:var(--r);background:var(--white);border:1.5px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.mini-btn:active{background:var(--off)}
+.s-section{padding-top:18px;margin-top:4px;border-top:1px solid var(--border)}
+.s-section-hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.cat-manage-list{display:flex;flex-direction:column;gap:6px}
+.cat-manage-row{display:flex;align-items:center;gap:10px;background:var(--off);border:1px solid var(--border);border-radius:10px;padding:9px 10px}
+.cat-manage-name{flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-manage-count{font-family:var(--mono);font-size:10px;color:var(--text3);white-space:nowrap}
+.cat-delete{border:none;background:transparent;color:var(--red);font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;padding:5px}
+.cat-delete:disabled{color:var(--text3);cursor:default}
+.cat-note{font-size:11px;line-height:1.6;color:var(--text2);margin-top:10px}
 
 /* CAMERA */
 .cam-wrap{position:relative;overflow:hidden;border-radius:var(--r);background:#000;aspect-ratio:1;max-height:270px;border:1px solid var(--border)}
@@ -244,7 +252,7 @@ body{font-family:var(--sans);background:linear-gradient(160deg,#f0f8ff 0%,#ddeef
     </div>
   </div>
   <div class="hdr-actions" id="hdr-actions">
-    <button class="hdr-btn primary" onclick="openModal('add-modal')">+ 追加</button>
+    <button class="hdr-btn primary" onclick="openAddItem()">+ 追加</button>
   </div>
 </div>
 
@@ -334,7 +342,7 @@ body{font-family:var(--sans);background:linear-gradient(160deg,#f0f8ff 0%,#ddeef
     <div class="drag"></div>
     <div class="m-hdr"><span class="m-title">QRコード一覧</span><div class="x-btn" onclick="closeModal('qr-modal')">✕</div></div>
     <div class="m-body">
-      <div class="qr-hint">各QRをタップ → 新タブで表示 → 長押し保存 → 印刷して貼り付け。スキャンで入出庫画面が開きます。</div>
+      <div class="qr-hint">各QRをタップ → 新タブで表示 → 長押し保存 → 印刷して貼り付け。iPhone・Androidの標準カメラで読み取ると、該当商品の入出庫画面が直接開きます。</div>
       <div class="qr-grid" id="qr-grid"></div>
     </div>
   </div>
@@ -344,17 +352,13 @@ body{font-family:var(--sans);background:linear-gradient(160deg,#f0f8ff 0%,#ddeef
 <div class="overlay" id="add-modal">
   <div class="sheet">
     <div class="drag"></div>
-    <div class="m-hdr"><span class="m-title" id="add-title">商品を追加</span><div class="x-btn" onclick="closeModal('add-modal')">✕</div></div>
+    <div class="m-hdr"><span class="m-title" id="add-title">商品を追加</span><div class="x-btn" onclick="cancelItemForm()">✕</div></div>
     <div class="m-body">
       <div class="fg"><label class="fl">分野</label>
-        <select class="fi" id="a-cat">
-          <option value="EnOcean">EnOcean</option>
-          <option value="ZBTM送信機">ZBTM送信機</option>
-          <option value="920M送信機">920M送信機</option>
-          <option value="赤外線送信機">赤外線送信機</option>
-          <option value="受信機">受信機</option>
-          <option value="各種モジュール">各種モジュール</option>
-        </select>
+        <div class="field-row">
+          <select class="fi" id="a-cat"></select>
+          <button class="mini-btn" type="button" onclick="openCategoryModal()">+ 分野</button>
+        </div>
       </div>
       <div class="fg"><label class="fl">DDK番号</label><input class="fi" id="a-ddk" placeholder="例：ddk12049"></div>
       <div class="fg"><label class="fl">商品名</label><input class="fi" id="a-name" placeholder="例：T02"></div>
@@ -413,6 +417,26 @@ body{font-family:var(--sans);background:linear-gradient(160deg,#f0f8ff 0%,#ddeef
         <div><div class="s-label">通知テスト</div><div class="s-sub">今すぐテスト通知を送る</div></div>
         <button class="hdr-btn" onclick="sendNotif('テスト','DAISEN在庫管理の通知です')">テスト</button>
       </div>
+      <div class="s-section">
+        <div class="s-section-hdr">
+          <div><div class="s-label">分野の管理</div><div class="s-sub">商品の分類を自由に追加</div></div>
+          <button class="hdr-btn" onclick="openCategoryModal()">+ 分野</button>
+        </div>
+        <div class="cat-manage-list" id="cat-manage-list"></div>
+        <div class="cat-note">商品が入っている分野は削除できません。新しい分野で商品を1件保存すると、ほかの端末にも表示されます。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY -->
+<div class="overlay" id="category-modal">
+  <div class="sheet">
+    <div class="drag"></div>
+    <div class="m-hdr"><span class="m-title">分野を追加</span><div class="x-btn" onclick="closeModal('category-modal')">✕</div></div>
+    <div class="m-body">
+      <div class="fg"><label class="fl">分野名</label><input class="fi" id="c-name" maxlength="30" placeholder="例：開発部品"></div>
+      <button class="submit-btn" onclick="addCategory()">追加する</button>
     </div>
   </div>
 </div>
@@ -429,14 +453,83 @@ async function sbUpsert(t,d){try{await fetch(`${SB_URL}/rest/v1/${t}`,{method:'P
 async function sbInsert(t,d){try{await fetch(`${SB_URL}/rest/v1/${t}`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(d)})}catch{}}
 async function sbDelete(t,id){try{await fetch(`${SB_URL}/rest/v1/${t}?id=eq.${encodeURIComponent(id)}`,{method:'DELETE',headers:H})}catch{}}
 
-const CATS=[
-  {id:'EnOcean',       label:'EnOcean',     icon:'🌿',color:'c0'},
-  {id:'ZBTM送信機',    label:'ZBTM送信機',  icon:'📡',color:'c1'},
-  {id:'920M送信機',    label:'920M送信機',  icon:'📶',color:'c2'},
-  {id:'赤外線送信機',  label:'赤外線送信機',icon:'💫',color:'c3'},
-  {id:'受信機',        label:'受信機',      icon:'📻',color:'c4'},
-  {id:'各種モジュール',label:'各種モジュール',icon:'🔧',color:'c5'},
+const DEFAULT_CATS=[
+  {id:'EnOcean',       label:'EnOcean'},
+  {id:'ZBTM送信機',    label:'ZBTM送信機'},
+  {id:'920M送信機',    label:'920M送信機'},
+  {id:'赤外線送信機',  label:'赤外線送信機'},
+  {id:'受信機',        label:'受信機'},
+  {id:'各種モジュール',label:'各種モジュール'},
 ];
+
+function loadCategories(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('dn_categories'));
+    if(Array.isArray(saved)) return saved.filter(c=>c&&c.id&&c.label);
+  }catch{}
+  return DEFAULT_CATS.map(c=>({...c}));
+}
+let CATS=loadCategories();
+
+function saveCategories(){localStorage.setItem('dn_categories',JSON.stringify(CATS))}
+function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+function syncCategoriesFromItems(){
+  const known=new Set(CATS.map(c=>c.id));
+  items.forEach(item=>{
+    const id=String(item.category||'').trim();
+    if(!id||known.has(id))return;
+    const base=DEFAULT_CATS.find(c=>c.id===id);
+    CATS.push(base?{...base}:{id,label:id});
+    known.add(id);
+  });
+  saveCategories();
+}
+
+function renderCategorySelect(preferred){
+  const el=document.getElementById('a-cat');if(!el)return;
+  const keep=preferred||el.value||currentCat||CATS[0]?.id||'';
+  el.innerHTML=CATS.map(c=>`<option value="${esc(c.id)}">${esc(c.label)}</option>`).join('');
+  if(CATS.some(c=>c.id===keep))el.value=keep;
+}
+
+function renderCategoryManager(){
+  const el=document.getElementById('cat-manage-list');if(!el)return;
+  if(!CATS.length){el.innerHTML='<div class="empty" style="padding:20px">分野がありません</div>';return}
+  el.innerHTML=CATS.map(c=>{
+    const count=items.filter(i=>i.category===c.id).length;
+    return `<div class="cat-manage-row">
+      <div class="cat-manage-name">${esc(c.label)}</div>
+      <div class="cat-manage-count">${count}件</div>
+      <button class="cat-delete" data-cat="${esc(c.id)}" onclick="deleteCategory(this.dataset.cat)" ${count?'disabled':''}>${count?'使用中':'削除'}</button>
+    </div>`;
+  }).join('');
+}
+
+let categoryReturnToAdd=false;
+function openCategoryModal(returnToAdd=false){
+  categoryReturnToAdd=returnToAdd;
+  document.getElementById('c-name').value='';
+  openModal('category-modal');
+  setTimeout(()=>document.getElementById('c-name').focus(),100);
+}
+
+function addCategory(){
+  const name=document.getElementById('c-name').value.trim();
+  if(!name){showToast('分野名を入力してください');return}
+  if(CATS.some(c=>c.id.toLocaleLowerCase()===name.toLocaleLowerCase())){showToast('同じ分野がすでにあります');return}
+  const c={id:name,label:name};
+  CATS.push(c);saveCategories();renderCategorySelect(name);renderCategoryManager();renderCats();
+  closeModal('category-modal');showToast('「'+name+'」を追加しました');
+  if(categoryReturnToAdd){categoryReturnToAdd=false;openAddItem()}
+}
+
+function deleteCategory(id){
+  if(items.some(i=>i.category===id)){showToast('商品が入っている分野は削除できません');return}
+  const c=CATS.find(x=>x.id===id);if(!c)return;
+  if(!confirm('分野「'+c.label+'」を削除しますか？'))return;
+  CATS=CATS.filter(x=>x.id!==id);saveCategories();renderCategorySelect();renderCategoryManager();renderCats();
+  showToast('分野を削除しました');
+}
 
 const DEFAULTS=[
   {id:'STM550J', ddk:'',name:'STM550J マルチセンサー',category:'EnOcean',qty:0,min:3,unit:'個'},
@@ -535,6 +628,7 @@ async function init(){
     }else{
       loadError='サーバーから在庫データが取得できませんでした（0件）。データは変更していません。リロードしてもう一度お試しください。';
     }
+    syncCategoriesFromItems();
     if(Array.isArray(hst)) hist=hst.map(h=>({...h,time:new Date(h.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}));
   }catch(e){
     loadError='サーバーへの接続に失敗しました。インターネット接続をご確認のうえ、リロードしてください。（データは変更していません）';
@@ -543,11 +637,12 @@ async function init(){
   if(loadError){
     showLoadError(loadError);
   }
+  renderCategorySelect();
   renderCats();
-  checkHash();
+  checkDeepLink();
 }
 
-function showLoadError(msg){ 
+function showLoadError(msg){
   const toast=document.getElementById('toast');
   if(toast){
     toast.textContent=msg;
@@ -564,18 +659,18 @@ function now(){return new Date().toLocaleString('ja-JP',{month:'numeric',day:'nu
 
 function renderCats(){
   const el=document.getElementById('cat-grid');
+  if(!CATS.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">分野を追加してください</div>';return}
   el.innerHTML=CATS.map((c,i)=>{
     const ci=items.filter(x=>x.category===c.id);
     const z=ci.filter(x=>st(x)==='zero').length;
     const w=ci.filter(x=>st(x)==='warn').length;
     let al='';
-    if(z>0)al+=`<div class="cat-alert zero">⚠ 在庫切れ ${z}</div>`;
+    if(z>0)al+=`<div class="cat-alert zero">在庫切れ ${z}</div>`;
     else if(w>0)al+=`<div class="cat-alert warn">残り少 ${w}</div>`;
-    return `<div class="cat-card ${c.color}" style="animation-delay:${i*.06}s" onclick="openCat('${c.id}')">
-      <div class="cat-icon">${c.icon}</div>
-      <div class="cat-name">${c.label}</div>
-      <div class="cat-count">${ci.length} アイテム</div>
-      ${al}
+    return `<div class="cat-card" data-cat="${esc(c.id)}" style="animation-delay:${i*.06}s" onclick="openCat(this.dataset.cat)">
+      <div class="cat-index">CATEGORY ${String(i+1).padStart(2,'0')}</div>
+      <div class="cat-name">${esc(c.label)}</div>
+      <div class="cat-footer"><div class="cat-count">${ci.length} ITEMS</div>${al}</div>
     </div>`;
   }).join('');
 }
@@ -583,10 +678,10 @@ function renderCats(){
 function openCat(catId){
   currentCat=catId;
   const c=CATS.find(x=>x.id===catId);
-  document.getElementById('hdr-title').textContent=c?c.label:'';
+  document.getElementById('hdr-title').textContent=c?c.label:catId;
   document.getElementById('hdr-actions').innerHTML=
     `<button class="hdr-btn" onclick="openQRList()">QR一覧</button>
-     <button class="hdr-btn primary" onclick="openModal('add-modal')">+ 追加</button>`;
+     <button class="hdr-btn primary" onclick="openAddItem()">+ 追加</button>`;
   document.getElementById('top-view').style.display='none';
   document.getElementById('list-view').style.display='';
   document.getElementById('t-home').classList.remove('on');
@@ -631,7 +726,7 @@ function goHome(){
   document.getElementById('top-view').style.display='';
   document.getElementById('list-view').style.display='none';
   document.getElementById('hdr-title').textContent='在庫管理システム';
-  document.getElementById('hdr-actions').innerHTML='<button class="hdr-btn primary" onclick="openModal(\'add-modal\')">+ 追加</button>';
+  document.getElementById('hdr-actions').innerHTML='<button class="hdr-btn primary" onclick="openAddItem()">+ 追加</button>';
   ['home','hist','set'].forEach(k=>document.getElementById('t-'+k).classList.toggle('on',k==='home'));
   renderCats();
 }
@@ -684,10 +779,20 @@ function deleteItem(){
   renderList();renderCats();closeModal('qa-modal');
 }
 let editMode=false,editId=null;
+function openAddItem(){
+  editMode=false;editId=null;
+  document.getElementById('add-title').textContent='商品を追加';
+  ['a-ddk','a-name','a-qty','a-min','a-unit'].forEach(k=>document.getElementById(k).value='');
+  renderCategorySelect(currentCat||CATS[0]?.id);
+  if(!CATS.length){openCategoryModal(true);return}
+  openModal('add-modal');
+}
+function cancelItemForm(){editMode=false;editId=null;document.getElementById('add-title').textContent='商品を追加';closeModal('add-modal')}
 function editItem(){
   const item=items.find(i=>i.id===qaId);if(!item)return;
   editMode=true;editId=qaId;
   document.getElementById('add-title').textContent='商品を編集';
+  renderCategorySelect(item.category);
   document.getElementById('a-cat').value=item.category;
   document.getElementById('a-ddk').value=item.ddk||'';
   document.getElementById('a-name').value=item.name;
@@ -700,6 +805,7 @@ function submitItem(){
   const name=document.getElementById('a-name').value.trim();
   if(!name){showToast('商品名を入力してください');return}
   const cat=document.getElementById('a-cat').value;
+  if(!cat){showToast('分野を選択してください');return}
   const ddk=document.getElementById('a-ddk').value.trim();
   const qty=parseInt(document.getElementById('a-qty').value)||0;
   const min=parseInt(document.getElementById('a-min').value)||5;
@@ -716,6 +822,7 @@ function submitItem(){
     items.push(item);
   }
   sbUpsert('inventory',item);
+  syncCategoriesFromItems();renderCategorySelect(cat);renderCategoryManager();
   if(currentCat===cat)renderList();
   renderCats();
   ['a-ddk','a-name','a-qty','a-min','a-unit'].forEach(k=>document.getElementById(k).value='');
@@ -749,11 +856,35 @@ function showToast(msg,dir){
   toastT=setTimeout(()=>el.classList.remove('show'),2200);
 }
 
+function makeItemUrl(id){
+  const url=new URL(location.href);
+  url.search='';
+  url.hash='';
+  url.searchParams.set('item',id);
+  return url.href;
+}
+function safeDecode(value){try{return decodeURIComponent(value)}catch{return value}}
+function extractItemCode(code){
+  const raw=String(code||'').trim();if(!raw)return'';
+  if(/^(https?:\/\/|\/)/i.test(raw)){
+    try{
+      const url=new URL(raw,location.href);
+      return String(url.searchParams.get('item')||url.searchParams.get('id')||safeDecode(url.hash.replace(/^#/,''))).trim();
+    }catch{}
+  }
+  return safeDecode(raw.replace(/^#/,'')).trim();
+}
+function findItemByCode(code){
+  const id=extractItemCode(code);
+  if(!id)return{id:'',item:null};
+  const key=id.toLocaleUpperCase();
+  return {id,item:items.find(i=>String(i.id).toLocaleUpperCase()===key||String(i.ddk||'').toLocaleUpperCase()===key)};
+}
+
 function openQRList(){
-  const base=location.href.split('#')[0];
   const list=currentCat?items.filter(i=>i.category===currentCat):items;
   document.getElementById('qr-grid').innerHTML=list.map(item=>{
-    const url=base+'#'+item.id;
+    const url=makeItemUrl(item.id);
     const src='https://api.qrserver.com/v1/create-qr-code/?size=130x130&data='+encodeURIComponent(url);
     return '<div class="qr-card" onclick="openQRDetail(\''+item.id+'\')"><div class="qr-n">'+item.name+'</div><div class="qr-ddk">'+(item.ddk||item.id)+'</div><div class="qr-img-wrap"><img src="'+src+'" width="110" height="110" loading="lazy"></div></div>';
   }).join('');
@@ -761,10 +892,10 @@ function openQRList(){
 }
 function openQRDetail(id){
   const item=items.find(i=>i.id===id);if(!item)return;
-  const url=location.href.split('#')[0]+'#'+id;
+  const url=makeItemUrl(id);
   const src='https://api.qrserver.com/v1/create-qr-code/?size=260x260&data='+encodeURIComponent(url);
   const w=window.open('','_blank');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+item.name+'</title><style>@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap");*{box-sizing:border-box;margin:0;padding:0}body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f0f8ff;font-family:-apple-system,sans-serif;padding:24px}.card{background:#fff;border:1px solid #c8e0f0;border-radius:16px;padding:24px 28px;text-align:center;box-shadow:0 4px 24px rgba(30,111,196,.1);max-width:280px;width:100%}.corp{font-family:"Orbitron",sans-serif;font-size:9px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;background:linear-gradient(90deg,#b8dff5,#1e6fc4,#b8dff5);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:sh 3s linear infinite;margin-bottom:10px}@keyframes sh{0%{background-position:200%}100%{background-position:-200%}}.line{height:1px;background:linear-gradient(90deg,transparent,#90c8ea,#1e6fc4,#90c8ea,transparent);margin-bottom:14px}.qr{display:inline-block;background:#fff;padding:8px;border-radius:10px;border:1.5px solid #c8e0f0;margin-bottom:14px}img{width:200px;height:200px;display:block}.cat{font-size:10px;color:#7bbde0;letter-spacing:.1em;margin-bottom:4px}.name{font-size:20px;font-weight:700;color:#111;margin-bottom:4px}.ddk{font-family:monospace;font-size:11px;color:#90aec4;margin-bottom:12px}.hint{font-size:10px;color:#b0c8d8}</style></head><body><div class="card"><div class="corp">DAISEN ELECTRONICS</div><div class="line"></div><div class="qr"><img src="'+src+'"></div><div class="cat">'+item.category+'</div><div class="name">'+item.name+'</div><div class="ddk">'+(item.ddk||item.id)+'</div><div class="hint">長押しで保存 · 印刷して商品に貼り付け</div></div></body></html>');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+item.name+'</title><style>@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap");*{box-sizing:border-box;margin:0;padding:0}body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f0f8ff;font-family:-apple-system,sans-serif;padding:24px}.card{background:#fff;border:1px solid #c8e0f0;border-radius:16px;padding:24px 28px;text-align:center;box-shadow:0 4px 24px rgba(30,111,196,.1);max-width:280px;width:100%}.corp{font-family:"Orbitron",sans-serif;font-size:9px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;background:linear-gradient(90deg,#b8dff5,#1e6fc4,#b8dff5);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:sh 3s linear infinite;margin-bottom:10px}@keyframes sh{0%{background-position:200%}100%{background-position:-200%}}.line{height:1px;background:linear-gradient(90deg,transparent,#90c8ea,#1e6fc4,#90c8ea,transparent);margin-bottom:14px}.qr{display:inline-block;background:#fff;padding:8px;border-radius:10px;border:1.5px solid #c8e0f0;margin-bottom:14px}img{width:200px;height:200px;display:block}.cat{font-size:10px;color:#7bbde0;letter-spacing:.1em;margin-bottom:4px}.name{font-size:20px;font-weight:700;color:#111;margin-bottom:4px}.ddk{font-family:monospace;font-size:11px;color:#90aec4;margin-bottom:12px}.hint{font-size:10px;color:#b0c8d8;line-height:1.6}</style></head><body><div class="card"><div class="corp">DAISEN ELECTRONICS</div><div class="line"></div><div class="qr"><img src="'+src+'"></div><div class="cat">'+item.category+'</div><div class="name">'+item.name+'</div><div class="ddk">'+(item.ddk||item.id)+'</div><div class="hint">標準カメラで読み取り → 入出庫画面を直接表示<br>長押しで保存 · 印刷して商品に貼り付け</div></div></body></html>');
 }
 
 let vStream=null,scanT=null;
@@ -788,8 +919,7 @@ async function startScan(){
 }
 function stopScan(){if(scanT){clearInterval(scanT);scanT=null}if(vStream){vStream.getTracks().forEach(t=>t.stop());vStream=null}}
 function handleCode(code){
-  const id=code.includes('#')?code.split('#').pop():code.trim().toUpperCase();
-  const item=items.find(i=>i.id===id);
+  const {id,item}=findItemByCode(code);
   if(item){if(item.category!==currentCat)openCat(item.category);setTimeout(()=>openQA(item.id),200)}
   else showToast('商品「'+id+'」が見つかりません');
 }
@@ -942,27 +1072,29 @@ function openHist(){
 }
 function openSet(){
   ['home','hist','set'].forEach(k=>document.getElementById('t-'+k).classList.toggle('on',k==='set'));
-  updateNotifUI();openModal('set-modal');
+  updateNotifUI();renderCategoryManager();openModal('set-modal');
 }
 
-function openModal(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden'}
+function openModal(id){if(id==='add-modal')renderCategorySelect();document.getElementById(id).classList.add('on');document.body.style.overflow='hidden'}
 function closeModal(id){
-  document.getElementById(id).classList.remove('on');document.body.style.overflow='';
+  document.getElementById(id).classList.remove('on');
   if(id==='scan-modal')stopScan();
+  document.body.style.overflow=document.querySelector('.overlay.on')?'hidden':'';
 }
 document.querySelectorAll('.overlay').forEach(el=>{
   el.addEventListener('click',e=>{if(e.target===el){if(el.id==='scan-modal')stopScan();closeModal(el.id)}});
 });
 
-function checkHash(){
-  const h=location.hash.replace('#','');if(!h)return;
-  const item=items.find(i=>i.id===h);
+function checkDeepLink(){
+  const {id,item}=findItemByCode(location.href);if(!id)return;
   if(item){openCat(item.category);setTimeout(()=>openQA(item.id),350)}
+  else showToast('商品「'+id+'」が見つかりません');
 }
 
 updateNotifUI();
 init();
-window.addEventListener('hashchange',checkHash);
+window.addEventListener('hashchange',checkDeepLink);
+window.addEventListener('popstate',checkDeepLink);
 </script>
 </body>
 </html>
