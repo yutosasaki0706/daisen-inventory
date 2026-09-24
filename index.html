@@ -27,7 +27,7 @@
       <div class="brand">DAISEN ELECTRONICS</div>
       <div class="brand-line"></div>
       <h1 id="auth-title">在庫管理システム</h1>
-      <p class="auth-lead">登録済みの社員アカウントでログインしてください。</p>
+      <p id="auth-lead" class="auth-lead">登録済みの社員アカウントでログインしてください。</p>
       <form id="login-form" novalidate>
         <label class="field">
           <span>メールアドレス</span>
@@ -35,11 +35,24 @@
         </label>
         <label class="field">
           <span>パスワード</span>
-          <input id="login-password" type="password" autocomplete="current-password" minlength="8" maxlength="128" required>
+          <input id="login-password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required>
         </label>
         <button id="login-button" class="button primary wide" type="submit">ログイン</button>
       </form>
       <p id="auth-status" class="form-status" role="alert" aria-live="polite"></p>
+      <form id="reset-password-form" hidden novalidate>
+        <label class="field">
+          <span>新しいパスワード</span>
+          <input id="new-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+        </label>
+        <label class="field">
+          <span>新しいパスワード（確認）</span>
+          <input id="confirm-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+        </label>
+        <p class="password-hint">12文字以上で、英小文字・英大文字・数字・記号を各1文字以上含めてください。</p>
+        <button id="reset-password-button" class="button primary wide" type="submit">パスワードを設定</button>
+        <p id="reset-password-status" class="form-status" role="alert" aria-live="polite"></p>
+      </form>
     </section>
   </main>
 

@@ -106,11 +106,11 @@ async function readResponse(response) {
   return text || null;
 }
 
-async function authRequest(path, body, accessToken = null) {
+async function authRequest(path, body, accessToken = null, method = "POST") {
   let response;
   try {
     response = await fetch(`${CONFIG.supabaseUrl}${path}`, {
-      method: "POST",
+      method,
       headers: {
         apikey: CONFIG.publishableKey,
         "Content-Type": "application/json",
@@ -158,6 +158,44 @@ function clearSession() {
   localStorage.removeItem(SESSION_KEY);
   window.clearInterval(state.pollTimer);
   state.pollTimer = null;
+}
+
+function removeAuthFragment() {
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+}
+
+function consumeAuthCallback() {
+  const rawHash = window.location.hash.slice(1);
+  if (!rawHash) return null;
+  const parameters = new URLSearchParams(rawHash);
+  const type = parameters.get("type");
+  const hasAuthResult = parameters.has("access_token") || parameters.has("error") || parameters.has("error_code");
+  if (!hasAuthResult) return null;
+
+  removeAuthFragment();
+  if (parameters.has("error") || parameters.has("error_code")) {
+    return { error: "このパスワード設定リンクは無効か期限切れです。新しいメールを発行してください。" };
+  }
+  if (!["recovery", "invite"].includes(type)) return { error: "認証リンクの種類を確認できませんでした。" };
+
+  try {
+    return {
+      type,
+      session: normalizeSession({
+        access_token: parameters.get("access_token"),
+        refresh_token: parameters.get("refresh_token"),
+        expires_in: parameters.get("expires_in"),
+      }),
+    };
+  } catch {
+    return { error: "このパスワード設定リンクは無効か期限切れです。新しいメールを発行してください。" };
+  }
+}
+
+async function hydrateSessionUser() {
+  const user = await authenticatedFetch("/auth/v1/user", { method: "GET" });
+  if (!user?.id) throw new Error("利用者情報を確認できませんでした。新しいメールを発行してください。");
+  saveSession({ ...state.session, user });
 }
 
 async function refreshSession() {
@@ -252,6 +290,19 @@ async function signIn(email, password) {
   }
 }
 
+async function updateOwnPassword(password) {
+  if (!state.session?.accessToken) throw new Error("パスワード設定リンクが無効です。");
+  await authRequest("/auth/v1/user", { password }, state.session.accessToken, "PUT");
+}
+
+function validateNewPassword(password, confirmation) {
+  if (password !== confirmation) throw new Error("確認用パスワードが一致しません。");
+  if (password.length < 12 || password.length > 128) throw new Error("パスワードは12〜128文字で入力してください。");
+  if (!/[a-z]/u.test(password) || !/[A-Z]/u.test(password) || !/[0-9]/u.test(password) || !/[^A-Za-z0-9]/u.test(password)) {
+    throw new Error("英小文字・英大文字・数字・記号を各1文字以上含めてください。");
+  }
+}
+
 async function signOut({ remote = true, showLogin = true } = {}) {
   const accessToken = state.session?.accessToken;
   if (remote && accessToken) {
@@ -274,11 +325,31 @@ async function signOut({ remote = true, showLogin = true } = {}) {
 }
 
 function showAuthView() {
+  byId("login-form").hidden = false;
+  byId("reset-password-form").hidden = true;
+  byId("auth-lead").textContent = "登録済みの社員アカウントでログインしてください。";
+  byId("auth-status").textContent = "";
   byId("auth-view").hidden = false;
   byId("app-shell").hidden = true;
   byId("app-shell").setAttribute("aria-hidden", "true");
   byId("login-password").value = "";
+  byId("new-password").value = "";
+  byId("confirm-password").value = "";
+  byId("reset-password-status").textContent = "";
   window.setTimeout(() => byId("login-email").focus(), 0);
+}
+
+function showPasswordSetupView(type) {
+  byId("login-form").hidden = true;
+  byId("auth-status").textContent = "";
+  byId("reset-password-form").hidden = false;
+  byId("auth-lead").textContent = type === "invite"
+    ? "招待を受け付けました。ログインに使用するパスワードを設定してください。"
+    : "新しいログインパスワードを設定してください。";
+  byId("auth-view").hidden = false;
+  byId("app-shell").hidden = true;
+  byId("app-shell").setAttribute("aria-hidden", "true");
+  window.setTimeout(() => byId("new-password").focus(), 0);
 }
 
 function showAppView() {
@@ -1112,6 +1183,27 @@ function startPolling() {
 }
 
 async function restoreLogin() {
+  const authCallback = consumeAuthCallback();
+  if (authCallback?.error) {
+    clearSession();
+    showAuthView();
+    byId("auth-status").textContent = authCallback.error;
+    return;
+  }
+  if (authCallback?.session) {
+    try {
+      saveSession(authCallback.session);
+      await hydrateSessionUser();
+      await fetchProfile();
+      showPasswordSetupView(authCallback.type);
+    } catch (error) {
+      clearSession();
+      showAuthView();
+      byId("auth-status").textContent = error.message;
+    }
+    return;
+  }
+
   state.session = loadStoredSession();
   if (!state.session) {
     showAuthView();
@@ -1158,6 +1250,24 @@ function wireEvents() {
         startPolling();
         processDeepLink();
       });
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  });
+
+  byId("reset-password-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const status = byId("reset-password-status");
+    status.textContent = "";
+    const password = byId("new-password").value;
+    const confirmation = byId("confirm-password").value;
+    const button = byId("reset-password-button");
+    try {
+      validateNewPassword(password, confirmation);
+      await withPending(button, async () => updateOwnPassword(password));
+      await signOut({ remote: true, showLogin: false });
+      showAuthView();
+      byId("auth-status").textContent = "パスワードを設定しました。新しいパスワードでログインしてください。";
     } catch (error) {
       status.textContent = error.message;
     }
