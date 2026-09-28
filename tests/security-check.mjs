@@ -9,6 +9,7 @@ const index = read("index.html");
 const app = read("app.js");
 const serviceWorker = read("service-worker.js");
 const migration = read("supabase/migrations/20260924012058_secure_inventory.sql");
+const stockTriggerFix = read("supabase/migrations/20260928021240_preserve_legacy_metadata_on_stock_change.sql");
 const verification = read("supabase/verify_security.sql");
 const failures = [];
 
@@ -48,6 +49,10 @@ requireMatch(migration, /security definer/iu, "権限検証付きDB関数があ�
 requireMatch(migration, /function public\.adjust_inventory[\s\S]+?security invoker/iu, "公開RPCがRLSを迂回する設定です。");
 requireMatch(migration, /create schema if not exists private/iu, "権限確認用の非公開スキーマがありません。");
 requireMatch(migration, /set search_path = ''/iu, "SECURITY DEFINER関数のsearch_pathが固定されていません。");
+requireMatch(stockTriggerFix, /if new\.ddk is distinct from old\.ddk then\s+new\.ddk := nullif\(btrim\(new\.ddk\), ''\);/iu, "数量だけの更新で既存DDKを変更しない対策がありません。");
+requireMatch(stockTriggerFix, /if new\.name is distinct from old\.name then\s+new\.name := btrim\(new\.name\);/iu, "数量だけの更新で既存商品名を変更しない対策がありません。");
+requireMatch(stockTriggerFix, /if nullif\(btrim\(new\.ddk\), ''\) is not null and exists/iu, "空欄DDKを重複番号として扱わない対策がありません。");
+requireMatch(stockTriggerFix, /revoke all on function private\.prepare_inventory_write\(\)/iu, "修正版トリガー関数の実行権限が制限されていません。");
 forbidMatch(migration, /create or replace function public\.(?:is_inventory_user|assert_inventory_role|inventory_actor_email)/iu, "内部権限関数が公開スキーマにあります。");
 forbidMatch(migration, /function public\.[^(]+\([^)]*\)[\s\S]{0,220}?security definer/giu, "公開RPCにSECURITY DEFINERが使われています。");
 requireMatch(verification, /has_table_privilege\('anon', 'public\.inventory'/iu, "匿名権限のDB検証がありません。");
