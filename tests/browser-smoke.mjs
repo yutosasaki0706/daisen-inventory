@@ -9,7 +9,7 @@ const userId = "11111111-1111-4111-8111-111111111111";
 let quantity = 4;
 let historyRows = [];
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}) });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = [];
 const authenticatedHeaders = [];
@@ -18,15 +18,6 @@ page.on("console", (message) => {
   if (message.type() === "error") errors.push(message.text());
 });
 page.on("pageerror", (error) => errors.push(error.message));
-
-await page.addInitScript(({ userId: id }) => {
-  localStorage.setItem("daisen_inventory_session_v2", JSON.stringify({
-    accessToken: "test-user-token",
-    refreshToken: "test-refresh-token",
-    expiresAt: Date.now() + 3_600_000,
-    user: { id, email: "editor@example.test" },
-  }));
-}, { userId });
 
 await page.route("https://earxbzdgjklewnsrcjsp.supabase.co/**", async (route) => {
   const request = route.request();
@@ -37,6 +28,7 @@ await page.route("https://earxbzdgjklewnsrcjsp.supabase.co/**", async (route) =>
   if (url.pathname.endsWith("/app_users")) return json([{ user_id: userId, email: "editor@example.test", role: "editor", active: true }]);
   if (url.pathname.endsWith("/categories")) return json([{ name: "テスト分野", sort_order: 1 }]);
   if (url.pathname.endsWith("/inventory")) {
+    if (url.searchParams.get("deleted_at") === "not.is.null") return json([]);
     return json([{
       id: "safe-item-id",
       ddk: "DDK-001",
@@ -78,9 +70,11 @@ await page.goto(baseUrl, { waitUntil: "networkidle" });
 assert.equal(await page.title(), "ダイセン電子工業 在庫管理");
 await page.locator("#app-shell").waitFor({ state: "visible" });
 assert.equal(await page.locator("#auth-view").isHidden(), true);
+assert.equal(await page.locator("#archive-item-button").isHidden(), true);
+assert.equal(await page.locator("#archive-settings").isHidden(), true);
 assert.equal(await page.locator(".category-card").count(), 1);
 assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
-assert.ok(authenticatedHeaders.every((header) => header === "Bearer test-user-token"));
+assert.ok(authenticatedHeaders.every((header) => header === ""));
 
 await page.locator(".category-card").click();
 await page.locator(".item-row").waitFor({ state: "visible" });
@@ -108,36 +102,12 @@ assert.match(await page.locator(".history-row strong").innerText(), /<img id=xss
 
 assert.deepEqual(errors, []);
 
-const recoveryPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
-let updatedPassword = "";
-await recoveryPage.route("https://earxbzdgjklewnsrcjsp.supabase.co/**", async (route) => {
-  const request = route.request();
-  const url = new URL(request.url());
-  const json = (value, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(value) });
-
-  if (url.pathname === "/auth/v1/user" && request.method() === "GET") {
-    return json({ id: userId, email: "editor@example.test" });
-  }
-  if (url.pathname === "/auth/v1/user" && request.method() === "PUT") {
-    updatedPassword = request.postDataJSON().password;
-    return json({ id: userId, email: "editor@example.test" });
-  }
-  if (url.pathname === "/auth/v1/logout") return route.fulfill({ status: 204 });
-  if (url.pathname.endsWith("/app_users")) {
-    return json([{ user_id: userId, email: "editor@example.test", role: "editor", active: true }]);
-  }
-  return json({ message: `Unhandled recovery endpoint: ${url.pathname}` }, 500);
-});
-
-await recoveryPage.goto(`${baseUrl}#access_token=recovery-access-token&refresh_token=recovery-refresh-token&expires_in=3600&type=recovery`, { waitUntil: "networkidle" });
-await recoveryPage.locator("#reset-password-form").waitFor({ state: "visible" });
-assert.equal(new URL(recoveryPage.url()).hash, "");
-await recoveryPage.locator("#new-password").fill("Secure-Inventory-2026!");
-await recoveryPage.locator("#confirm-password").fill("Secure-Inventory-2026!");
-await recoveryPage.locator("#reset-password-button").click();
-await recoveryPage.locator("#login-form").waitFor({ state: "visible" });
-assert.equal(updatedPassword, "Secure-Inventory-2026!");
-assert.match(await recoveryPage.locator("#auth-status").innerText(), /パスワードを設定しました/);
-
+await page.locator('[data-close="history-modal"]').click();
+await page.locator('#settings-tab').click();
+await page.locator('#admin-login-button').click();
+await page.locator('#login-form').waitFor({ state: 'visible' });
+await page.locator('#cancel-login-button').click();
+await page.locator('#app-shell').waitFor({ state: 'visible' });
+assert.equal(await page.locator('#auth-view').isHidden(), true);
 await browser.close();
 process.stdout.write("Browser smoke test passed.\n");

@@ -1,105 +1,25 @@
 # DAISEN在庫管理
 
-社内向けの在庫管理Webアプリです。Supabase Auth、Row Level Security、Postgres RPCを使用し、認証・権限管理・原子的な在庫更新・監査履歴を実装しています。
+在庫管理はログインせず利用できます。設定の「管理者ログイン」からログインすると、管理者に限り商品の削除・復元、分野の削除ができます。
 
-## 主な安全対策
+| 操作 | ログインなし | 管理者 |
+|---|---|---|
+| 在庫・履歴の閲覧、QR、通知 | 可 | 可 |
+| 入出庫、商品追加・編集、分野追加 | 可 | 可 |
+| 商品削除・復元、分野削除 | 不可 | 可 |
 
-- 未ログイン利用者（`anon`）の在庫・履歴アクセスを全面禁止
-- `viewer`、`editor`、`admin`の3権限
-- 在庫数の更新と履歴追加を同じDBトランザクションで実行
-- 行ロックと冪等リクエストIDによる二重更新・同時更新対策
-- 商品の削除は復元可能な論理削除
-- 操作者、サーバー時刻、変更前後の数量を履歴へ記録
-- 動的データを`innerHTML`や`document.write`へ渡さないDOM描画
-- Content Security Policyとローカル配置したQRライブラリ
-- 外部QR生成サービスへ商品IDを送信しない
-- 30秒間隔、画面復帰時、オンライン復帰時の自動同期
-- 通信成功後にだけ画面を更新
+既存のログイン利用者には従来のviewer/editor/adminの権限が適用されます。ログアウトすると通常利用に戻ります。
+URLを知る人が通常利用できる共有アプリです。ログインなしの操作は個人名を記録しません。
 
-## 初回適用手順
+在庫の原子的更新、冪等リクエストID、同時更新検知、監査履歴、論理削除、入力検証、QR、通知、自動同期を維持しています。
+在庫データ・既存履歴の書き換えや削除は行いません。
 
-本番データを扱うため、次の順番を守ってください。
+## データベース
 
-1. Supabase Dashboardでデータベースのバックアップを取得する。
-2. 現行公開アプリを直ちに止める場合は、SQL Editorで`supabase/EMERGENCY_LOCKDOWN.sql`を実行する。この時点で旧アプリは使用不能になる。
-3. SupabaseのAuthentication > Usersで最初の管理者ユーザーを作成する。
-4. SQL Editorで`supabase/migrations/20260924012058_secure_inventory.sql`を実行する。
-5. SQL Editorで次のSQLを実行し、作成したユーザーを管理者として登録する。
+`supabase/enable_login_free_inventory.sql` はログインなしの通常操作を許可する変更です。RLSを維持し、匿名での商品削除・復元、分野削除、履歴の直接改変、利用者情報の閲覧は禁止します。既存の管理者アカウントと管理者向けRPCは維持します。
+過去の `verify_security.sql` は旧ログイン必須構成用です。新構成では `supabase/verify_guest_access.sql` を使用します（テスト変更はロールバックされます）。
 
-```sql
-insert into public.app_users (user_id, email, role)
-select id, email, 'admin'
-from auth.users
-where lower(email) = lower('管理者のメールアドレス')
-on conflict (user_id) do update
-set email = excluded.email, role = 'admin', active = true, updated_at = now();
-```
+## 確認
 
-6. SQL Editorで`supabase/verify_security.sql`を実行し、`Security verification passed.`を確認する。
-7. Supabase DashboardのAuthentication設定で、一般利用者による新規登録を無効にする。
-8. このリポジトリをGitHub Pagesへデプロイする。
-9. 管理者でログインし、既存在庫・履歴・カテゴリを確認する。
-10. 入庫と出庫を各1回テストし、在庫数と履歴の両方が一致することを確認する。
-
-## 社員ユーザーの追加
-
-Authentication > Usersでユーザーを作成した後、SQL Editorから登録します。
-
-```sql
-insert into public.app_users (user_id, email, role)
-select id, email, 'editor'
-from auth.users
-where lower(email) = lower('社員のメールアドレス')
-on conflict (user_id) do update
-set email = excluded.email, role = excluded.role, active = true, updated_at = now();
-```
-
-権限は以下の通りです。
-
-| 権限 | 閲覧 | 入出庫 | 商品編集 | 分野追加 | 商品・分野削除 |
-|---|---:|---:|---:|---:|---:|
-| `viewer` | 可 | 不可 | 不可 | 不可 | 不可 |
-| `editor` | 可 | 可 | 可 | 可 | 不可 |
-| `admin` | 可 | 可 | 可 | 可 | 可 |
-
-## 無効化と復元
-
-社員の利用を止める場合、Authユーザーを削除する前に`app_users.active`を`false`にします。
-
-```sql
-update public.app_users
-set active = false, updated_at = now()
-where lower(email) = lower('対象メールアドレス');
-```
-
-論理削除した商品は、管理者でログインし、設定画面の「削除済み商品」から復元できます。復元操作も監査履歴に記録されます。
-
-## ローカル確認
-
-```bash
-python3 -m http.server 8080
-```
-
-`http://localhost:8080`を開きます。カメラはHTTPSまたはlocalhostでのみ利用できます。
-
-構文・セキュリティの静的チェック：
-
-```bash
-node --check app.js
-node --check service-worker.js
-node tests/security-check.mjs
-```
-
-## 注意事項
-
-- `sb_publishable_...`キーは公開クライアント用です。秘密情報ではなく、データ保護はAuth、RLS、権限剥奪、RPC内の権限検証で行います。
-- GitHub Pages自体は公開されます。ログイン画面と静的コードは誰でも閲覧できますが、在庫と履歴はRLSで保護されます。
-- 通知はWeb Pushではありません。アプリを開いている端末で検知した在庫低下だけを通知します。
-- オフライン中は在庫を更新しません。失敗した操作を成功扱いすることもありません。
-
-## 第三者ライブラリ
-
-- `jsQR` 1.4.0 — Apache-2.0
-- `qrcode-generator` 1.4.4 — MIT
-
-ライブラリは`vendor/`に固定バージョンで保存しており、実行時に外部CDNへ接続しません。
+`node --check app.js`、`node --check service-worker.js`、`node tests/security-check.mjs`、`node tests/optional-login.mjs`。
+ブラウザ確認にはHTTPサーバーとPlaywrightが必要です。`node tests/browser-smoke.mjs` を実行してください。

@@ -226,10 +226,10 @@ async function ensureFreshSession() {
 }
 
 async function authenticatedFetch(path, options = {}, canRetry = true) {
-  await ensureFreshSession();
+  if (state.session) await ensureFreshSession();
   const headers = new Headers(options.headers || {});
   headers.set("apikey", CONFIG.publishableKey);
-  headers.set("Authorization", `Bearer ${state.session.accessToken}`);
+  if (state.session) headers.set("Authorization", `Bearer ${state.session.accessToken}`);
   if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
 
   let response;
@@ -239,7 +239,7 @@ async function authenticatedFetch(path, options = {}, canRetry = true) {
     throw new Error("サーバーに接続できません。変更は保存されていません。");
   }
 
-  if (response.status === 401 && canRetry) {
+  if (response.status === 401 && canRetry && state.session) {
     await refreshSession();
     return authenticatedFetch(path, options, false);
   }
@@ -321,13 +321,13 @@ async function signOut({ remote = true, showLogin = true } = {}) {
   state.currentCategory = null;
   state.initialized = false;
   closeAllModals();
-  if (showLogin) showAuthView();
+  if (showLogin) await enterApp();
 }
 
 function showAuthView() {
   byId("login-form").hidden = false;
   byId("reset-password-form").hidden = true;
-  byId("auth-lead").textContent = "登録済みの社員アカウントでログインしてください。";
+  byId("auth-lead").textContent = "商品の削除・復元、分野の削除には管理者ログインが必要です。";
   byId("auth-status").textContent = "";
   byId("auth-view").hidden = false;
   byId("app-shell").hidden = true;
@@ -356,8 +356,10 @@ function showAppView() {
   byId("auth-view").hidden = true;
   byId("app-shell").hidden = false;
   byId("app-shell").setAttribute("aria-hidden", "false");
-  byId("current-user").textContent = state.profile.email;
-  byId("current-role").textContent = roleLabel(state.profile.role);
+  byId("current-user").textContent = state.profile?.email || "ログインなしで利用中";
+  byId("current-role").textContent = state.profile ? roleLabel(state.profile.role) : "通常利用";
+  byId("admin-login-button").hidden = Boolean(state.session);
+  byId("logout-button").hidden = !state.session;
   applyRoleVisibility();
 }
 
@@ -366,7 +368,7 @@ function roleLabel(role) {
 }
 
 function canEdit() {
-  return state.profile && ["editor", "admin"].includes(state.profile.role);
+  return !state.session || (state.profile && ["editor", "admin"].includes(state.profile.role));
 }
 
 function isAdmin() {
@@ -977,7 +979,7 @@ function renderHistoryLog() {
     const content = createNode("div");
     content.append(createNode("strong", { text: entry.name || "商品" }));
     const date = entry.created_at ? new Date(entry.created_at).toLocaleString("ja-JP") : "日時不明";
-    const actor = entry.actor_email || "旧履歴・操作者不明";
+    const actor = entry.actor_email || "操作者未記録";
     const label = ACTION_LABELS[entry.action] || "操作";
     content.append(createNode("div", { className: "history-meta", text: `${label} · ${entry.category || "分野なし"} · ${actor} · ${date}` }));
     if (entry.note) content.append(createNode("div", { className: "history-meta", text: `メモ：${entry.note}` }));
@@ -1205,21 +1207,25 @@ async function restoreLogin() {
   }
 
   state.session = loadStoredSession();
-  if (!state.session) {
-    showAuthView();
-    return;
+  if (state.session) {
+    try {
+      await ensureFreshSession();
+      await fetchProfile();
+    } catch {
+      clearSession();
+    }
   }
+  await enterApp();
+}
+
+async function enterApp() {
+  showAppView();
+  startPolling();
   try {
-    await ensureFreshSession();
-    await fetchProfile();
-    showAppView();
-    await loadData();
-    startPolling();
+    await loadData({ fresh: true });
     processDeepLink();
   } catch (error) {
-    clearSession();
-    showAuthView();
-    byId("auth-status").textContent = error.message;
+    showToast(error.message, "error");
   }
 }
 
@@ -1231,6 +1237,14 @@ function processDeepLink() {
 }
 
 function wireEvents() {
+  byId("admin-login-button").addEventListener("click", () => {
+    closeAllModals();
+    showAuthView();
+  });
+  byId("cancel-login-button").addEventListener("click", async () => {
+    await signOut({ remote: false, showLogin: false });
+    await enterApp();
+  });
   byId("login-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = byId("auth-status");
@@ -1322,12 +1336,12 @@ function wireEvents() {
   });
   window.addEventListener("online", () => {
     updateOnlineState();
-    if (state.session) loadData({ detectAlerts: true }).catch((error) => showToast(error.message, "error"));
+    loadData({ detectAlerts: true }).catch((error) => showToast(error.message, "error"));
   });
   window.addEventListener("offline", updateOnlineState);
   window.addEventListener("hashchange", processDeepLink);
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && navigator.onLine && state.session) loadData({ silent: true, detectAlerts: true }).catch(() => {});
+    if (!document.hidden && navigator.onLine) loadData({ silent: true, detectAlerts: true }).catch(() => {});
   });
 }
 
