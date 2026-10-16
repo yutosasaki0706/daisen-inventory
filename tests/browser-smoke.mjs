@@ -84,11 +84,9 @@ assert.match(await page.locator(".item-name").innerText(), /<img id=xss-proof/);
 
 await page.locator(".item-row").click();
 assert.equal(await page.locator("#stock-modal").getAttribute("aria-hidden"), "false");
-await page.locator("#stock-in-button").click();
-await page.locator("#stock-note").fill("テスト入庫");
-await page.locator("#execute-stock-button").click();
-await page.locator("#stock-modal").waitFor({ state: "hidden" });
-assert.match(await page.locator(".item-quantity strong").innerText(), /^5$/);
+assert.equal(await page.locator('#stock-editor-controls').isHidden(), true);
+assert.equal(await page.locator('#edit-item-button').isHidden(), true);
+await page.locator('[data-close="stock-modal"]').click();
 
 await page.locator("#qr-list-button").click();
 await page.locator(".qr-card img").waitFor({ state: "visible" });
@@ -98,7 +96,7 @@ await page.locator('[data-close="qr-list-modal"]').click();
 await page.locator("#history-tab").click();
 await page.locator("#log-tab").click();
 assert.equal(await page.locator("#xss-history").count(), 0);
-assert.match(await page.locator(".history-row strong").innerText(), /<img id=xss-history/);
+
 
 assert.deepEqual(errors, []);
 

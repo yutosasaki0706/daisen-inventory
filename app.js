@@ -327,7 +327,7 @@ async function signOut({ remote = true, showLogin = true } = {}) {
 function showAuthView() {
   byId("login-form").hidden = false;
   byId("reset-password-form").hidden = true;
-  byId("auth-lead").textContent = "商品の削除・復元、分野の削除には管理者ログインが必要です。";
+  byId("auth-lead").textContent = "追加・編集・入出庫・削除には管理者ログインが必要です。";
   byId("auth-status").textContent = "";
   byId("auth-view").hidden = false;
   byId("app-shell").hidden = true;
@@ -356,8 +356,8 @@ function showAppView() {
   byId("auth-view").hidden = true;
   byId("app-shell").hidden = false;
   byId("app-shell").setAttribute("aria-hidden", "false");
-  byId("current-user").textContent = state.profile?.email || "ログインなしで利用中";
-  byId("current-role").textContent = state.profile ? roleLabel(state.profile.role) : "通常利用";
+  byId("current-user").textContent = state.profile?.email || "閲覧のみ（ログインなし）";
+  byId("current-role").textContent = state.profile ? roleLabel(state.profile.role) : "閲覧のみ";
   byId("admin-login-button").hidden = Boolean(state.session);
   byId("logout-button").hidden = !state.session;
   applyRoleVisibility();
@@ -368,7 +368,7 @@ function roleLabel(role) {
 }
 
 function canEdit() {
-  return !state.session || (state.profile && ["editor", "admin"].includes(state.profile.role));
+  return isAdmin();
 }
 
 function isAdmin() {
