@@ -327,7 +327,7 @@ async function signOut({ remote = true, showLogin = true } = {}) {
 function showAuthView() {
   byId("login-form").hidden = false;
   byId("reset-password-form").hidden = true;
-  byId("auth-lead").textContent = "追加・編集・入出庫・削除には管理者ログインが必要です。";
+  byId("auth-lead").textContent = "商品の追加・編集・削除には管理者ログインが必要です。";
   byId("auth-status").textContent = "";
   byId("auth-view").hidden = false;
   byId("app-shell").hidden = true;
@@ -356,8 +356,8 @@ function showAppView() {
   byId("auth-view").hidden = true;
   byId("app-shell").hidden = false;
   byId("app-shell").setAttribute("aria-hidden", "false");
-  byId("current-user").textContent = state.profile?.email || "閲覧のみ（ログインなし）";
-  byId("current-role").textContent = state.profile ? roleLabel(state.profile.role) : "閲覧のみ";
+  byId("current-user").textContent = state.profile?.email || "閲覧・入出庫（ログインなし）";
+  byId("current-role").textContent = state.profile ? roleLabel(state.profile.role) : "閲覧・入出庫";
   byId("admin-login-button").hidden = Boolean(state.session);
   byId("logout-button").hidden = !state.session;
   applyRoleVisibility();
@@ -366,6 +366,8 @@ function showAppView() {
 function roleLabel(role) {
   return { viewer: "閲覧", editor: "編集", admin: "管理者" }[role] || role;
 }
+
+function canAdjustStock() { return true; }
 
 function canEdit() {
   return isAdmin();
@@ -378,7 +380,7 @@ function isAdmin() {
 function applyRoleVisibility() {
   const editable = canEdit();
   byId("add-item-button").hidden = !editable;
-  byId("stock-editor-controls").hidden = !editable;
+  byId("stock-editor-controls").hidden = !canAdjustStock();
   byId("edit-item-button").hidden = !editable;
   byId("archive-item-button").hidden = !isAdmin();
   byId("item-admin-actions").hidden = !editable;
@@ -568,7 +570,7 @@ function openStockModal(itemId) {
   if (!item) return;
   state.currentItemId = item.id;
   state.stockDirection = null;
-  byId("stock-title").textContent = canEdit() ? "入出庫" : "在庫詳細";
+  byId("stock-title").textContent = canAdjustStock() ? "入出庫" : "在庫詳細";
   byId("stock-meta").textContent = [item.ddk, item.category].filter(Boolean).join(" · ");
   byId("stock-name").textContent = item.name;
   byId("stock-current").textContent = item.qty;
@@ -591,7 +593,7 @@ function openStockModal(itemId) {
 }
 
 function selectStockDirection(direction) {
-  if (!canEdit()) return;
+  if (!canAdjustStock()) return;
   state.stockDirection = direction;
   byId("stock-in-button").className = `direction-button${direction === "in" ? " selected-in" : ""}`;
   byId("stock-out-button").className = `direction-button${direction === "out" ? " selected-out" : ""}`;
@@ -609,7 +611,7 @@ function adjustQuantity(amount) {
 
 async function executeStockChange() {
   const item = currentItem();
-  if (!item || !state.stockDirection || !canEdit()) return;
+  if (!item || !state.stockDirection || !canAdjustStock()) return;
   let quantity;
   let note;
   try {

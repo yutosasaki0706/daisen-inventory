@@ -35,7 +35,7 @@ requireMatch(app, /type === "invite"/u, "招待リンクの処理がありませ
 requireMatch(app, /"recovery", "invite"/u, "リカバリーリンクの処理がありません。");
 requireMatch(app, /authRequest\("\/auth\/v1\/user", \{ password \}, state\.session\.accessToken, "PUT"\)/u, "パスワード更新処理がありません。");
 requireMatch(app, /history\.replaceState/iu, "認証トークンをURLから除去していません。");
-requireMatch(serviceWorker, /daisen-inventory-shell-v5/u, "更新後のキャッシュ名が切り替わっていません。");
+requireMatch(serviceWorker, /daisen-inventory-shell-v6/u, "更新後のキャッシュ名が切り替わっていません。");
 requireMatch(app, /state\.session\.accessToken/u, "認証済みアクセストークンを利用していません。");
 requireMatch(app, /window\.top !== window\.self/u, "クリックジャッキング防止処理がありません。");
 requireMatch(app, /rpc\("adjust_inventory"/u, "原子的な在庫更新RPCを呼んでいません。");

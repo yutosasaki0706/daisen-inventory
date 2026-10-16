@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "daisen-inventory-shell-v5";
+const CACHE_NAME = "daisen-inventory-shell-v6";
 const SHELL = [
   "./",
   "./index.html",

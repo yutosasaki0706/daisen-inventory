@@ -84,7 +84,7 @@ assert.match(await page.locator(".item-name").innerText(), /<img id=xss-proof/);
 
 await page.locator(".item-row").click();
 assert.equal(await page.locator("#stock-modal").getAttribute("aria-hidden"), "false");
-assert.equal(await page.locator('#stock-editor-controls').isHidden(), true);
+assert.equal(await page.locator('#stock-editor-controls').isHidden(), false);
 assert.equal(await page.locator('#edit-item-button').isHidden(), true);
 await page.locator('[data-close="stock-modal"]').click();
 

@@ -14,6 +14,7 @@ const context = vm.createContext({
 const source = fs.readFileSync(new URL('../app.js', import.meta.url), 'utf8').split('\nwireEvents();')[0];
 vm.runInContext(source, context);
 assert.equal(vm.runInContext('canEdit()', context), false);
+assert.equal(vm.runInContext('canAdjustStock()', context), true);
 assert.equal(vm.runInContext('isAdmin()', context), false);
 await vm.runInContext('restGet("inventory", "select=id")', context);
 assert.equal(requests.at(-1).options.headers.has('Authorization'), false);
@@ -26,6 +27,8 @@ assert.equal(requests.at(-1).options.headers.get('Authorization'), 'Bearer admin
 vm.runInContext('state.profile.role = "editor";', context);
 assert.equal(vm.runInContext('isAdmin()', context), false);
 assert.equal(vm.runInContext('canEdit()', context), false);
+assert.equal(vm.runInContext('canAdjustStock()', context), true);
 vm.runInContext('state.profile.role = "viewer";', context);
 assert.equal(vm.runInContext('canEdit()', context), false);
+assert.equal(vm.runInContext('canAdjustStock()', context), true);
 console.log('Optional login and admin request tests passed.');
