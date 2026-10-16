@@ -1350,7 +1350,8 @@ function wireEvents() {
 async function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || window.location.protocol !== "https:") return;
   try {
-    await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
+    const registration = await navigator.serviceWorker.register("./service-worker.js", { scope: "./", updateViaCache: "none" });
+    await registration.update();
   } catch {
     // The app remains usable online if service-worker registration fails.
   }
