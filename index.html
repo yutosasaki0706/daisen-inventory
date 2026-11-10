@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=20261110-print1">
+  <link rel="stylesheet" href="styles.css?v=20261110-print2">
   <script src="vendor/jsQR-1.4.0.js" defer></script>
   <script src="vendor/qrcode-generator-1.4.4.js" defer></script>
   <script src="app.js?v=20261016-2" defer></script>
@@ -201,9 +201,11 @@
         <div class="modal-body qr-detail">
           <div class="brand">DAISEN ELECTRONICS</div>
           <img id="qr-detail-image" width="240" height="240" alt="">
-          <p id="qr-detail-category" class="muted"></p>
-          <h3 id="qr-detail-name"></h3>
-          <p id="qr-detail-ddk" class="mono muted"></p>
+          <div class="qr-print-labels">
+            <p id="qr-detail-category" class="muted"></p>
+            <h3 id="qr-detail-name"></h3>
+            <p id="qr-detail-ddk" class="mono muted"></p>
+          </div>
           <button id="print-qr-button" class="button primary wide no-print" type="button">印刷する</button>
         </div>
       </section>

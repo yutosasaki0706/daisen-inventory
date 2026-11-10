@@ -422,7 +422,7 @@ button:disabled { cursor: not-allowed; opacity: .56; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
-@page { margin: 12mm; }
+@page { size: A4 portrait; margin: 12mm; }
 
 @media print {
   /* Remove the inventory/list layout, not just its ink, from pagination. */
@@ -466,12 +466,49 @@ button:disabled { cursor: not-allowed; opacity: .56; }
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  #qr-detail-modal .qr-detail { padding-top: 10mm; }
+  #qr-detail-modal .qr-detail {
+    position: relative;
+    /* A4's 273mm printable height, with 1mm pagination rounding allowance.
+       Anchor the QR to 136.5mm so its center stays at the paper's 148.5mm. */
+    height: 272mm;
+    padding: 0;
+    color: #000;
+    text-align: center;
+  }
+  #qr-detail-modal .qr-detail .brand {
+    position: absolute;
+    top: 90mm;
+    left: 0;
+    width: 100%;
+    color: #000;
+    font-size: 12pt;
+  }
+  #qr-detail-modal .qr-print-labels {
+    position: absolute;
+    top: 173mm;
+    left: 0;
+    width: 100%;
+    display: grid;
+    gap: 3mm;
+  }
+  #qr-detail-category, #qr-detail-name, #qr-detail-ddk {
+    margin: 0;
+    color: #000;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  #qr-detail-category { font-size: 14pt; }
+  #qr-detail-name { font-size: 22pt; font-weight: 700; }
+  #qr-detail-ddk { font-size: 16pt; }
   #qr-detail-image {
     width: 60mm;
     height: 60mm;
     max-width: 100%;
     object-fit: contain;
-    margin: 5mm auto;
+    position: absolute;
+    top: 136.5mm;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
   }
 }
