@@ -422,11 +422,56 @@ button:disabled { cursor: not-allowed; opacity: .56; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
+@page { margin: 12mm; }
+
 @media print {
-  body * { visibility: hidden !important; }
-  #qr-detail-modal, #qr-detail-modal * { visibility: visible !important; }
-  #qr-detail-modal { position: static; display: block; padding: 0; background: #fff; }
-  #qr-detail-modal .sheet { width: 100%; max-height: none; box-shadow: none; transform: none; background: #fff; }
+  /* Remove the inventory/list layout, not just its ink, from pagination. */
+  body > :not(#app-shell),
+  #app-shell > :not(#qr-detail-modal),
   .no-print { display: none !important; }
-  .qr-detail { padding-top: 40px; }
+
+  html, body, body.modal-open, #app-shell {
+    width: auto;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible !important;
+    background: #fff;
+  }
+  #qr-detail-modal {
+    position: static;
+    inset: auto;
+    display: block;
+    width: 100%;
+    height: auto;
+    padding: 0;
+    background: #fff;
+  }
+  #qr-detail-modal .sheet,
+  #qr-detail-modal .qr-detail {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+    background: #fff;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  #qr-detail-modal .qr-detail { padding-top: 10mm; }
+  #qr-detail-image {
+    width: 60mm;
+    height: 60mm;
+    max-width: 100%;
+    object-fit: contain;
+    margin: 5mm auto;
+  }
 }
